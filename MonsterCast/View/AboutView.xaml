@@ -1,0 +1,62 @@
+﻿<Page
+    x:Class="MonsterCast.View.AboutView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MonsterCast.View"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="RootLayout">
+        <Grid.Background>
+            <ImageBrush AlignmentX="Center" AlignmentY="Center"
+                        Stretch="UniformToFill" 
+                        ImageSource="ms-appx:///Assets/Backgrounds/AboutBg.jpg" 
+                        />
+        </Grid.Background>
+        <Grid x:Name="ContentLayout" 
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch">
+            <Grid.Background>
+                <SolidColorBrush Color="Black" Opacity=".5"/>
+            </Grid.Background>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <StackPanel Orientation="Vertical" VerticalAlignment="Center"
+                        HorizontalAlignment="Left" Grid.Column="1">
+                <TextBlock Text="MonsterCast" Foreground="White"
+                           FontSize="45" FontWeight="Bold"/>
+                <TextBlock Text="Your best way to listen Monstercast's Podcast" 
+                           Foreground="White"
+                           FontSize="45" TextWrapping="Wrap"/>
+                <TextBlock Text="Special thanks to Monstercat for the  lovely podcasts" 
+                           Foreground="White"
+                           FontSize="20" TextWrapping="Wrap"/>
+
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Made with " 
+                           Foreground="White"
+                           FontSize="20" TextWrapping="Wrap"/>
+                    <Image Stretch="None" Source="ms-appx:///Assets/Backgrounds/hearts.png" 
+                           Width="30" Height="30"/>
+                    <TextBlock Text="for Monstercat's fan"
+                               Foreground="White"
+                           FontSize="20" TextWrapping="Wrap"/>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Grid.Column="1"
+                        VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                        Margin="0,0,0,30">
+                <TextBlock Text="Developer and Designer : Jean Philippe KOUASSI" 
+                           Foreground="White"
+                           FontSize="16" TextWrapping="Wrap"/>
+                <TextBlock Text="Version : 3.0.1" 
+                           Foreground="White"
+                           FontSize="14" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Page>

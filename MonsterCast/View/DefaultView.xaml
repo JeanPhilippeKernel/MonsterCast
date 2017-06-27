@@ -1,0 +1,60 @@
+﻿<Page
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MonsterCast.View"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Class="MonsterCast.View.DefaultView"
+    mc:Ignorable="d">
+    <ScrollViewer x:Name="Scroller" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <StackPanel x:Name="ContentRoot" VerticalAlignment="Top"
+                    HorizontalAlignment="Stretch" Orientation="Vertical">
+            <!-- generated content here -->
+        </StackPanel>
+        <!--<StackPanel VerticalAlignment="Top"  
+              HorizontalAlignment="Stretch">
+            <FlipView HorizontalAlignment="Stretch" 
+                      ItemTemplate="{StaticResource FlipViewItemTemplate}">
+                <ListBoxItem/>
+                <ListBoxItem/>
+                <ListBoxItem/>
+                <ListBoxItem/>
+            </FlipView>
+            <Grid MinHeight="740">
+                <GridView ItemTemplate="{StaticResource GridViewItemTemplate}"
+                          SelectionMode="None" ItemsPanel="{StaticResource GridViewItemsPanelTemplate}"
+                          IsItemClickEnabled="True"
+                          Foreground="Transparent"
+                          ItemsSource="{Binding PodcastCollection}">
+                    <GridView.Background>
+                        <ImageBrush ImageSource="http://tana.themeton.com/music/wp-content/uploads/sites/4/2016/09/box-bg.jpg?id=17"/>
+                    </GridView.Background>
+                    <ListBoxItem />
+                    <ListBoxItem />
+                    <ListBoxItem />
+                    <ListBoxItem />
+                    <ListBoxItem />
+                    <ListBoxItem />
+                    <ListBoxItem />
+                    <ListBoxItem />
+                </GridView>
+            </Grid>
+            <Grid MinHeight="740">
+                <GridView ItemTemplate="{StaticResource GridViewItemTemplate}" Background="White"
+                          SelectionMode="None" ItemsPanel="{StaticResource GridViewItemsPanelTemplate}"
+                          IsItemClickEnabled="True" Foreground="Transparent" 
+                          ItemsSource="{Binding PodcastCollection}">
+                    
+                    <ListBoxItem />
+                    <ListBoxItem />
+                    <ListBoxItem />
+                    <ListBoxItem />
+                    <ListBoxItem />
+                    <ListBoxItem />
+                    <ListBoxItem />
+                    <ListBoxItem />
+                </GridView>
+            </Grid>
+        </StackPanel>-->
+    </ScrollViewer>
+</Page>
