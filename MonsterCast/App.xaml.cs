@@ -115,9 +115,9 @@ namespace MonsterCast
         private void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
-            //TODO: enregistrez l'état de l'application et arrêtez toute activité en arrière-plan           
+            //TODO: enregistrez l'état de l'application et arrêtez toute activité en arrière-plan 
+            Helpers.CloseDbConnection();
             deferral.Complete();
-            //AppConstants.Player.Dispose();
         }
     }
 }
