@@ -1,31 +1,32 @@
 # What is MonsterCast
-A free on-demand music service in the form of a mobile application  whose content is solely based on musical works signed 
-by the Canadian label Monstercat
 
-# Comment est né MonsterCast ?
+A free on-demand music service in the form of a mobile application
+By the Canadian label Monstercat
 
-A la base MonsterCast est née sous l'effet de paraisse
-En effet, etant un fan de music electronique j'étais à la recherche de musique pouvant satisfaire mon style de musique
-et c'est dans cette quête que j'ai rencontré les musique offertes par le label Canadien Monstercat
-et tout de suite ça été le coup de foudre.
+# How was MonsterCast born?
 
-Pour pouvoir ecouter ma musique j'etais obligé de toujours me rendre sur des sites comme SoundCloud, Spotify ou même Mixcloud
-ce qui me derangeais enormement, et sans parler des publicités intempestives et des couts d'abonnements à ces plateformes.
+At the MonsterCast base was born under the effect of
+Indeed, being a fan of electronic music I was in search of music that can satisfy my style of music
+And it is in this quest that I met the music offered by the Canadian label Monstercat
+And right away it was love at first sight.
 
-Alors pour parer à ces problèmes , j'ai donc decidé de me lancer dans cette aventure qui est de concevoir ma propre application de musique 
-à la demande que j'ai baptisé MonsterCast
+To be able to listen to my music I had to always go to sites like SoundCloud, Spotify or even Mixcloud
+Which caused me a lot of trouble, and not to mention untimely advertisements and subscriptions to these platforms.
 
-#Fonctionnalité de MonsterCast
+So to deal with these problems, I decided to embark on this adventure which is to design my own music application
+At the request that I christened MonsterCast
 
-- Collection Podcasts en on-demand et toujours à jour
-- Live music streaming en continu
-- Gestion de favoris
-- Classement de la musique par artiste (bientôt disponible)
+# MonsterCast functionalities
+
+- Collection Podcasts on-demand and always up-to-date
+- Live music streaming
+- Manage favorites
+- Classification of music by artist (coming soon)
+- Synchronisation on all device (coming soon)
+
+MonsterCast's open source project, in its current version is only available on Windows, Windows phone and Xbox platforms
+The other platforms will soon be available. Any contribution will be welcome :)
 
 
-MonsterCast etant projet Open Source, dans sa version actuelle n'est disponible que sous les plateformes Windows, Windows phone et Xbox
-les autres plateformes seront bientôt disponible. Toute contribution sera la bienvenue :) 
 
-
-
-Copyrigth : Jean Philippe KOUASSI
+Copyrigtht: Jean Philippe KOUASSI
