@@ -29,4 +29,4 @@ The other platforms will soon be available. Any contribution will be welcome :)
 
 
 
-Copyrigtht: Jean Philippe KOUASSI
+Copyrigtht: Jean Philippe KOUASSI and Contributors
