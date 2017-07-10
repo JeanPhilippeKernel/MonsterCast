@@ -1,0 +1,110 @@
+﻿<Page
+    x:Class="MonsterCast.View.NowPlayingView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MonsterCast.View"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:Interactivity="using:Microsoft.Xaml.Interactivity" 
+    xmlns:Behaviors="using:Microsoft.Toolkit.Uwp.UI.Animations.Behaviors"
+    DataContext="{Binding NowPlayingVM, Source={StaticResource ViewModelLocator}}">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid x:Name="ContentLayout" Background="Black">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid VerticalAlignment="Stretch" 
+                  HorizontalAlignment="Stretch"
+                  MinHeight="200">
+                <Grid.Background>
+                    <ImageBrush AlignmentX="Center" AlignmentY="Center"
+                            Stretch="UniformToFill" 
+                            ImageSource="{Binding Playing.Address}"/>
+                </Grid.Background>
+                <Interactivity:Interaction.Behaviors>
+                    <Behaviors:Blur AutomaticallyStart="True" Value="10" Duration="250"/>
+                </Interactivity:Interaction.Behaviors>
+
+            </Grid>
+
+            <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                  MaxHeight="200">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid x:Name="Cover" Grid.Column="0" HorizontalAlignment="Left" 
+                        VerticalAlignment="Stretch" Width="200">
+                    <Grid.Background>
+                        <ImageBrush AlignmentX="Center" AlignmentY="Center"
+                            Stretch="UniformToFill" 
+                            ImageSource="{Binding Playing.Address}"/>
+                    </Grid.Background>
+                </Grid>
+                <Grid Grid.Column="1"  Margin="20,20,0,0"
+                            MaxHeight="200">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="{Binding Playing.Title}" Foreground="White"
+                            FontSize="35px" FontWeight="Bold" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding Playing.Subtitle}"
+                            Foreground="White" FontSize="20px" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <!--<StackPanel VerticalAlignment="Bottom" Orientation="Horizontal">
+                        <Button Content="Play" Foreground="White"
+                            Background="Transparent"
+                            Style="{StaticResource CastButtonStyle}"
+                            Margin="20" Width="80" Height="35"
+                                Command="{Binding PlayCommand}"/>
+
+                        <Button Content="Add to favorite" Foreground="White"
+                            Background="Transparent"
+                            Style="{StaticResource CastButtonStyle1}"
+                            Width="130" Height="35"
+                            Command="{Binding FavoriteCommand}"/>
+                    </StackPanel>-->
+
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Row="1"
+                  Background="White"
+                  HorizontalAlignment="Stretch" 
+                  VerticalAlignment="Stretch">
+                <TextBlock Text="{Binding Playing.Summary}" 
+                           TextWrapping="Wrap" Margin="20"
+                           Foreground="Black"/>
+
+            </Grid>
+        </Grid>
+        <Grid x:Name="NotPlayingMask" Visibility="{Binding ShowMask}"  
+              VerticalAlignment="Stretch"
+              HorizontalAlignment="Stretch">
+            <Grid.Transitions>
+                <TransitionCollection>
+                    <AddDeleteThemeTransition/>
+                </TransitionCollection>
+            </Grid.Transitions>
+
+            <Image VerticalAlignment="Stretch"
+                   HorizontalAlignment="Stretch"
+                   Stretch="UniformToFill" 
+                   Source="ms-appx:///Assets/Backgrounds/AboutBg.jpg"/>
+            <Grid>
+                <Grid.Background>
+                    <SolidColorBrush Color="Black" Opacity=".9"/>
+                </Grid.Background>
+
+
+                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
+                       Text="No playing cast..." Foreground="White"
+                       FontSize="60" FontFamily="Segoe UI"/>
+
+            </Grid>
+        </Grid>
+    </Grid>
+
+</Page>

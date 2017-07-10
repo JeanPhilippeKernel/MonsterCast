@@ -36,6 +36,7 @@ namespace MonsterCast
             navigationService.Configure(ViewModelLocator.AboutViewKey, typeof(AboutView));
             navigationService.Configure(ViewModelLocator.DefaultViewKey, typeof(DefaultView));
             navigationService.Configure(ViewModelLocator.CastDetailKey, typeof(CastDetailView));
+            navigationService.Configure(ViewModelLocator.NowPlayingViewKey, typeof(NowPlayingView));
            
             SimpleIoc.Default.Register<IDialogService, DialogService>();
             Helpers.SetDatabaseAsync();

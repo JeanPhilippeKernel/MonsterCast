@@ -41,19 +41,18 @@ namespace MonsterCast.ViewModel
             _messenger.Register<GenericMessage<Cast>>(this, "fromDefault", MessageDefaultAction);
 
             PlayCommand = new RelayCommand(PlayCommandHandler);
-            FavoriteCommand = new RelayCommand(FavoriteCommandHandlerAsync);
+            FavoriteCommand = new RelayCommand(FavoriteCommandHandler);
         }
 
-        private async void FavoriteCommandHandlerAsync()
+        private void FavoriteCommandHandler()
         {
-            await Helpers.Database.InsertAsync(ActiveCast);
-            Messenger.Default.Send(new NotificationMessage<Cast>(ActiveCast, "castAdded"));
+            Helpers.AddCastToDbAsync(ActiveCast);
             Debug.WriteLine("[*] cast added..");
         }
 
         private void PlayCommandHandler()
         {
-            _messenger.Send<GenericMessage<Cast>>(new GenericMessage<Cast>(ActiveCast), "play_request");
+            _messenger.Send(new GenericMessage<Cast>(ActiveCast), "play_request");
         }
 
         private void MessageDefaultAction(GenericMessage<Cast> args)

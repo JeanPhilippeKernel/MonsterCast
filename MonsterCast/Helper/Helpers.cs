@@ -23,7 +23,7 @@ namespace MonsterCast.Helper
             get { return _db ?? throw new Exception("You must set database, see Helpers.SetDatabaseAsync()"); }
             set { _db = value; }
         }
-
+       public static event EventHandler DatabaseUpdated;
         public static async void SetDatabaseAsync()
         {
             try
@@ -46,6 +46,32 @@ namespace MonsterCast.Helper
                 Debug.WriteLine($"[*] Helper : {ex.Message} ");
             }
         }
+
+        public static async void AddCastToDbAsync(Cast item)
+        {
+            var _exist = await IsCastExistToDbAsync(item);
+            if (!_exist)
+            {
+                await Database.InsertAsync(item);
+                DatabaseUpdated(null, EventArgs.Empty);
+            }
+        }
+        public static async void RemoveCastToDbAsync(Cast item)
+        {
+            var _exist = await IsCastExistToDbAsync(item);
+            if (_exist)
+            {
+                await Database.DeleteAsync(item);
+                DatabaseUpdated(null, EventArgs.Empty);
+            }
+        }
+        public static async Task<bool> IsCastExistToDbAsync(Cast item)
+        {  
+            var castCollection = await Database.Table<Cast>().ToListAsync();
+            var result = castCollection.Exists(e => e.Title == item.Title);
+            return result;
+        }
+
         public static void CloseDbConnection()
         {
             SQLiteConnectionPool.Shared.Reset();
