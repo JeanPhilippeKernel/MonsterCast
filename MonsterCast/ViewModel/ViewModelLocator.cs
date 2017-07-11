@@ -22,6 +22,7 @@ namespace MonsterCast.ViewModel
         public const string AboutViewKey = "AboutView";
         public const string DefaultViewKey = "DefaultView";
         public const string CastDetailKey = "CastDetailView";
+        public const string NowPlayingViewKey = "NowPlayingView";
         #endregion
 
         #region ViewModelProperties
@@ -32,6 +33,7 @@ namespace MonsterCast.ViewModel
         public DefaultViewModel DefaultVM => SimpleIoc.Default.GetInstance<DefaultViewModel>();
         public FavoriteViewModel FavoriteVM => SimpleIoc.Default.GetInstance<FavoriteViewModel>();
         public CastDetailViewModel CastDetailVM => SimpleIoc.Default.GetInstance<CastDetailViewModel>();
+        public NowPlayingViewModel NowPlayingVM => SimpleIoc.Default.GetInstance<NowPlayingViewModel>();
         #endregion
 
         static ViewModelLocator()
@@ -48,6 +50,7 @@ namespace MonsterCast.ViewModel
             SimpleIoc.Default.Register<LiveViewModel>();
             SimpleIoc.Default.Register<FavoriteViewModel>();
             SimpleIoc.Default.Register<CastDetailViewModel>(true);
+            SimpleIoc.Default.Register<NowPlayingViewModel>(true);
         }
 
         public static void UnregisterAndCleanup<T>()

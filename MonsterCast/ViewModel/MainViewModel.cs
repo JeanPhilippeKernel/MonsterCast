@@ -33,8 +33,9 @@ namespace MonsterCast.ViewModel
         public RelayCommand<ItemClickEventArgs> MenuItemCommand => _menuItemCommand;
         public List<MenuItem> MenuItemCollection => new List<MenuItem>
         {
+            new MenuItem {Icon = "ms-appx:///Assets/Menu/nowplaying.png", Name = "Now Playing", PageType = typeof(NowPlayingView)},
             new MenuItem {Icon = "ms-appx:///Assets/Menu/cast.png", Name ="Your casts", PageType = typeof(FavoriteCastView) },
-            new MenuItem {Icon = "ms-appx:///Assets/Menu/live.png", Name ="Live", PageType = typeof(LiveView) },
+            new MenuItem {Icon = "ms-appx:///Assets/Menu/live.png", Name ="Live", PageType = typeof(LiveView) },            
         };
 
         public List<MenuItem> OptionalItemCollection => new List<MenuItem>
@@ -92,8 +93,6 @@ namespace MonsterCast.ViewModel
         {            
             _messenger = messenger;
             _messenger.Register<GenericMessage<Type>>(this, "nav_request", NavRequestAction);
-
-
             _messenger.Register<GenericMessage<Cast>>(this, "play_request", PlayRequestAction);
 
             _menuItemCommand = new RelayCommand<ItemClickEventArgs>(RelayCommandHandler);
@@ -167,6 +166,8 @@ namespace MonsterCast.ViewModel
                 PositionMax = 0;
                 CurrentMediaEndTime = "00:00:00";
                 CurrentMediaStartTime = "00:00:00";
+
+                _messenger.Send(new NotificationMessage("media ended"), "end_playing");
             });
         }
 
@@ -174,8 +175,11 @@ namespace MonsterCast.ViewModel
         {
             await DispatcherHelper.RunAsync(() =>
             {
+                IsBufferingProgress = true;
                 PositionMax = sender.PlaybackSession.NaturalDuration.TotalSeconds;
                 CurrentMediaEndTime = sender.PlaybackSession.NaturalDuration.ToString(@"hh\:mm\:ss");
+
+                _messenger.Send(new GenericMessage<Cast>(ActiveMedia), "now_playing");
             });
             sender.PlaybackSession.PositionChanged += PlaybackSession_PositionChangedAsync;
         }
