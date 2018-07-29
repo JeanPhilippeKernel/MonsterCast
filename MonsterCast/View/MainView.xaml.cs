@@ -49,13 +49,14 @@ namespace MonsterCast.View
 
             _mainVM.MainNavigationView = MainNavigationView;
             _mainVM.HostedFrame = HostedFrame;
+            _mainVM.PlayFontIcon = PlayButton;
+            _mainVM.SoundFontIcon = SoundButton;
+            _mainVM.LoopFontIcon = LoopButton;
                                                                             
             Messenger.Default.Register<MenuItem>(this, MessageAction);
             Messenger.Default.Register<Type>(this, NavRequestAction);
             
             _mainVM.HostedFrame.Navigate(typeof(DefaultView));
-
-            AppConstants.Player.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChangedAsync;
         }
 
         private void NavRequestAction(Type arg)
@@ -64,69 +65,9 @@ namespace MonsterCast.View
         }
 
         private void MessageAction(MenuItem arg)
-        {
-            //if (arg.PageType == typeof(LiveView))
-            //    _navigationService.NavigateTo(ViewModelLocator.LiveViewKey);
-            //else
+        {          
                 _mainVM.HostedFrame.Navigate(arg.PageType);
         }
-
-
-        private void SoundGrid_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            var placementElement = sender as FrameworkElement;
-            SoundGrid.ContextFlyout.ShowAt(placementElement);
-        }
-
-
-        private async void PlaybackSession_PlaybackStateChangedAsync(Windows.Media.Playback.MediaPlaybackSession sender, object args)
-        {
-            if (sender.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
-            {
-                await DispatcherHelper.RunAsync(() =>
-                {
-                    PlayButton.Glyph = "\uE769";
-                                    
-                });
-            }
-            else if (sender.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
-            {
-                await DispatcherHelper.RunAsync(() =>
-                {
-                    PlayButton.Glyph = "\uE768";
-                  
-                });
-            }                                                 
-        }
-
-        private void PlayButton_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-           if(AppConstants.Player.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
-            {
-                AppConstants.Player.Play();
-                PlayButton.Glyph = "\uE769";
-                   
-            }
-           else if(AppConstants.Player.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
-            {
-                AppConstants.Player.Pause();
-                PlayButton.Glyph = "\uE768";
-            }
-        }
-
-        private void Grid_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            AppConstants.Player.IsLoopingEnabled = AppConstants.Player.IsLoopingEnabled == true ? false : true;
-
-            var icon = sender as FontIcon;
-            if (AppConstants.Player.IsLoopingEnabled)
-            {                
-                icon.Foreground = new SolidColorBrush(Colors.Orange);                
-            }
-            else
-            {
-                icon.Foreground = new SolidColorBrush(Colors.White);               
-            }
-        }
+   
     }
 }

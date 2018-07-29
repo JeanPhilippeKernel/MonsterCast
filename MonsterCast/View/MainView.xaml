@@ -29,7 +29,7 @@
                                 MenuItemsSource="{Binding MenuItemCollection}"
                                 Background="{ThemeResource SystemControlAltHighAcrylicElementBrush}"
                                 AlwaysShowHeader="False">
-                    
+
                     <NavigationView.PaneFooter>
                         <NavigationViewList ItemsSource="{Binding OptionalItemCollection}" 
                                             IsItemClickEnabled="true" SelectionMode="Single">
@@ -61,9 +61,7 @@
                     </Frame>
 
                     <Interactivity:Interaction.Behaviors>
-                        <Core:EventTriggerBehavior EventName="ItemInvoked">
-                            <Core:InvokeCommandAction Command="{Binding MenuItemCommand}"/>
-                        </Core:EventTriggerBehavior>
+                    
                         <Core:EventTriggerBehavior EventName="SelectionChanged">
                             <Core:InvokeCommandAction Command="{Binding SelectedMenuItemCommand}"/>
                         </Core:EventTriggerBehavior>
@@ -73,7 +71,7 @@
                     </Interactivity:Interaction.Behaviors>
                 </NavigationView>
             </Grid>
-            
+
             <!--player area -->
             <Grid x:Name="player" Grid.Row="1"
                   HorizontalAlignment="Stretch" 
@@ -95,12 +93,17 @@
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal">
                         <FontIcon Width="20" Height="14" Foreground="White" FontFamily="Segoe MDL2 Assets" Glyph="&#xEB9E;" />
-                        <FontIcon x:Name="PlayButton" Foreground="White" FontFamily="Segoe MDL2 Assets" Width="20" Height="26" Margin="30,0,0,0" Tapped="PlayButton_Tapped" Glyph="&#xE768;"/>
+                        <FontIcon x:Name="PlayButton" Foreground="White" FontFamily="Segoe MDL2 Assets" Width="20" Height="26" Margin="30,0,0,0" Glyph="&#xE768;">
+                            <Interactivity:Interaction.Behaviors>
+                                <Core:EventTriggerBehavior EventName="Tapped">
+                                    <Core:InvokeCommandAction Command="{Binding PlayFontIconTappedCommand}"/>
+                                </Core:EventTriggerBehavior>
+                            </Interactivity:Interaction.Behaviors>
+                        </FontIcon>
                         <FontIcon Width="20" Height="14" Foreground="White" FontFamily="Segoe MDL2 Assets" Glyph="&#xEB9D;" Margin="30,0,0,0"/>
                     </StackPanel>
 
-                    <Grid Grid.Column="1" VerticalAlignment="Top"
-                          MinHeight="20">
+                    <Grid Grid.Column="1" VerticalAlignment="Top" MinHeight="20">
                         <ProgressBar Background="Transparent" IsIndeterminate="{Binding IsBufferingProgress, Mode=OneWay}" Foreground="White"
                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                     </Grid>
@@ -125,8 +128,15 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <FontIcon x:Name="LoopButton" Margin="15" VerticalAlignment="Center" MinWidth="30" Foreground="White" Glyph="&#xEF3B;" Tapped="Grid_Tapped"/>
-                        <FontIcon x:Name="SoundGrid" MinWidth="30" Margin="15" VerticalAlignment="Center" Glyph="&#xE767;" Tapped="SoundGrid_Tapped" Foreground="White">
+                        <FontIcon x:Name="LoopButton" Margin="15" VerticalAlignment="Center" MinWidth="30" Foreground="White" Glyph="&#xEF3B;" >
+                            <Interactivity:Interaction.Behaviors>
+                                <Core:EventTriggerBehavior EventName="Tapped">
+                                    <Core:InvokeCommandAction Command="{Binding LoopFontIconTappedCommand}"/>
+                                </Core:EventTriggerBehavior>
+                            </Interactivity:Interaction.Behaviors>
+                        </FontIcon>
+
+                        <FontIcon x:Name="SoundButton" MinWidth="30" Margin="15" VerticalAlignment="Center" Glyph="&#xE767;" Foreground="White">
                             <FontIcon.ContextFlyout>
                                 <Flyout LightDismissOverlayMode="Off">
                                     <Flyout.FlyoutPresenterStyle>
@@ -144,8 +154,14 @@
                                     </Grid>
                                 </Flyout>
                             </FontIcon.ContextFlyout>
+
+                            <Interactivity:Interaction.Behaviors>
+                                <Core:EventTriggerBehavior EventName="Tapped">
+                                    <Core:InvokeCommandAction Command="{Binding SoundFontIconTappedCommand}"/>
+                                </Core:EventTriggerBehavior>
+                            </Interactivity:Interaction.Behaviors>
                         </FontIcon>
-              
+
                     </StackPanel>
 
                 </Grid>
@@ -161,7 +177,7 @@
                                            MaxLines="1" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" MaxWidth="200"/>
                             </StackPanel>
                         </Grid>
-                       
+
                     </StackPanel>
                 </Grid>
             </Grid>

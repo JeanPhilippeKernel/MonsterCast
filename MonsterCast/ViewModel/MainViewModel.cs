@@ -24,6 +24,9 @@ namespace MonsterCast.ViewModel
         private readonly RelayCommand<ManipulationCompletedRoutedEventArgs> _thumbManipulationCommand = null;
         private readonly RelayCommand<NavigationViewBackRequestedEventArgs> _backButtonCommand = null;
         private readonly RelayCommand<NavigationEventArgs> _hostedFrameNavigatedCommand = null;
+        private readonly RelayCommand<TappedRoutedEventArgs> _soundFontIconTappedCommand = null;
+        private readonly RelayCommand<TappedRoutedEventArgs> _playFontIconTappedCommand = null;
+        private readonly RelayCommand<TappedRoutedEventArgs> _loopFontIconTappedCommand = null;
         private Dictionary<MenuItemEnum, MenuItem> _internalPageTypeTag => new Dictionary<MenuItemEnum, MenuItem>
             {
                 {MenuItemEnum.ALL_PODCAST, new MenuItem{ PageType = typeof(DefaultView)} } ,
@@ -46,6 +49,10 @@ namespace MonsterCast.ViewModel
         private NavigationView _mainNavigationView = null;
         private Frame _hostedFrame = null;
         private NavigationViewBackButtonVisible _isBackButtonVisible = NavigationViewBackButtonVisible.Collapsed;
+
+        private FontIcon _soundFontIcon = null;
+        private FontIcon _playFontIcon = null;
+        private FontIcon _loopFontIcon = null;
         #endregion
 
         #region Properties
@@ -54,7 +61,11 @@ namespace MonsterCast.ViewModel
         public RelayCommand<ManipulationCompletedRoutedEventArgs> ThumbManipulationCommand => _thumbManipulationCommand;
         public RelayCommand<NavigationViewBackRequestedEventArgs> BackButtonCommand => _backButtonCommand;
         public RelayCommand<NavigationEventArgs> HostedFrameNavigatedCommand => _hostedFrameNavigatedCommand;
-       
+
+
+        public RelayCommand<TappedRoutedEventArgs> SoundFontIconTappedCommand => _soundFontIconTappedCommand;
+        public RelayCommand<TappedRoutedEventArgs> PlayFontIconTappedCommand => _playFontIconTappedCommand;
+        public RelayCommand<TappedRoutedEventArgs> LoopFontIconTappedCommand => _loopFontIconTappedCommand;
         public List<NavigationViewItem> MenuItemCollection => new List<NavigationViewItem>
         {
 
@@ -126,6 +137,24 @@ namespace MonsterCast.ViewModel
             set { Set(() => HostedFrame, ref _hostedFrame, value); }
         }
 
+        public FontIcon PlayFontIcon
+        {
+            get { return _playFontIcon; }
+            set { Set(() => PlayFontIcon, ref _playFontIcon, value); }
+        }
+
+        public FontIcon SoundFontIcon
+        {
+            get { return _soundFontIcon; }
+            set { Set(() => SoundFontIcon, ref _soundFontIcon, value); }
+        }
+
+        public FontIcon LoopFontIcon
+        {
+            get { return _loopFontIcon; }
+            set { Set(() => LoopFontIcon, ref _loopFontIcon, value); }
+        }
+
         public NavigationViewBackButtonVisible IsBackButtonVisible
         {
             get { return _isBackButtonVisible; }
@@ -145,6 +174,10 @@ namespace MonsterCast.ViewModel
             _backButtonCommand = new RelayCommand<NavigationViewBackRequestedEventArgs>(BackButtonRelayCommand);
             _hostedFrameNavigatedCommand = new RelayCommand<NavigationEventArgs>(HostedFrameNavigatedRelayCommand);
 
+            _soundFontIconTappedCommand = new RelayCommand<TappedRoutedEventArgs>(SoundFontIconTappedRelayCommand);
+            _playFontIconTappedCommand = new RelayCommand<TappedRoutedEventArgs>(PlayFontIconTappedRelayCommand);
+            _loopFontIconTappedCommand = new RelayCommand<TappedRoutedEventArgs>(LoopFontIconTappedRelayCommandAsync);
+
             AppConstants.Player.BufferingStarted += Player_BufferingStartedAsync;
             AppConstants.Player.BufferingEnded += Player_BufferingEndedAsync;
             AppConstants.Player.MediaOpened += Player_MediaOpenedAsync;
@@ -152,9 +185,11 @@ namespace MonsterCast.ViewModel
             AppConstants.Player.MediaFailed += Player_MediaFailed;
             AppConstants.Player.SourceChanged += Player_SourceChangedAsync;
             AppConstants.Player.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChangedAsync;
+            AppConstants.Player.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChangedAsync_2;
             AppConstants.Player.Volume = _volume;
         }
 
+      
         #region Messenger_Method
         private void PlayRequestAction(GenericMessage<Cast> args)
         {
@@ -172,14 +207,30 @@ namespace MonsterCast.ViewModel
         #region MediaPlayer_Method
         private async void PlaybackSession_PlaybackStateChangedAsync(MediaPlaybackSession sender, object args)
         {
-            Debug.WriteLine("playback  changed");
-            if (sender.PlaybackState == MediaPlaybackState.Buffering
-                || sender.PlaybackState == MediaPlaybackState.Playing)
+            Debug.WriteLine($"playback changed : {sender.PlaybackState.ToString()}");
+            if (sender.PlaybackState == MediaPlaybackState.Buffering || sender.PlaybackState == MediaPlaybackState.Playing)
+                await DispatcherHelper.RunAsync(() => PositionMax = sender.NaturalDuration.TotalSeconds);
+            
+            if (sender.PlaybackState == MediaPlaybackState.Opening)
+                await DispatcherHelper.RunAsync(() => IsBufferingProgress = true);
+        }
+
+        private async void PlaybackSession_PlaybackStateChangedAsync_2(MediaPlaybackSession sender, object args)
+        {
+            if (sender.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
             {
                 await DispatcherHelper.RunAsync(() =>
                 {
-                    PositionMax = sender.NaturalDuration.TotalSeconds;
-                    //CurrentMediaEndTime = sender.NaturalDuration.ToString(@"hh\:mm\:ss");
+                    PlayFontIcon.Glyph = "\uE769";
+
+                });
+            }
+            else if (sender.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
+            {
+                await DispatcherHelper.RunAsync(() =>
+                {
+                    PlayFontIcon.Glyph = "\uE768";
+
                 });
             }
         }
@@ -249,6 +300,37 @@ namespace MonsterCast.ViewModel
         #endregion
 
         #region RelayCommand_Method
+        private async void LoopFontIconTappedRelayCommandAsync(TappedRoutedEventArgs argss)
+        {
+            AppConstants.Player.IsLoopingEnabled = AppConstants.Player.IsLoopingEnabled == true ? false : true;
+            
+            if (AppConstants.Player.IsLoopingEnabled)
+                await DispatcherHelper.RunAsync(() => LoopFontIcon.Foreground = new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.Orange));
+            else
+                await DispatcherHelper.RunAsync(() => LoopFontIcon.Foreground = new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.White));           
+        }
+
+
+        private async void PlayFontIconTappedRelayCommand(TappedRoutedEventArgs args)
+        {
+            if (AppConstants.Player.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
+            {
+                AppConstants.Player.Play();
+                await DispatcherHelper.RunAsync(() => PlayFontIcon.Glyph = "\uE769");
+            }
+            else if (AppConstants.Player.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
+            {
+                AppConstants.Player.Pause();
+                await DispatcherHelper.RunAsync(() => PlayFontIcon.Glyph = "\uE768");               
+            }
+        }
+
+        private async void SoundFontIconTappedRelayCommand(TappedRoutedEventArgs args)
+        {
+            var placementElement = SoundFontIcon as Windows.UI.Xaml.FrameworkElement;
+            await DispatcherHelper.RunAsync(() => SoundFontIcon.ContextFlyout.ShowAt(placementElement));
+        }
+
         private void HostedFrameNavigatedRelayCommand(NavigationEventArgs obj)
         {
             if (HostedFrame != null)

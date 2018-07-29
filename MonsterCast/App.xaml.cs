@@ -70,7 +70,7 @@ namespace MonsterCast
             viewTitleBar.ButtonForegroundColor = Windows.UI.Colors.White;
             //viewTitleBar.ButtonForegroundColor = (Windows.UI.Color)Resources["SystemBaseHighColor"];
 
-
+                                      
             Frame rootFrame = Window.Current.Content as Frame;
                                                           
             // Ne répétez pas l'initialisation de l'application lorsque la fenêtre comporte déjà du contenu,

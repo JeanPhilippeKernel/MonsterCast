@@ -33,7 +33,7 @@ namespace MonsterCast.ViewModel
         #endregion
 
         #region Properties
-        public RelayCommand<object> MediaAction { get; set; }
+        public RelayCommand MediaAction { get; set; }
         public int Min
         {
             get { return _min; }
@@ -61,7 +61,7 @@ namespace MonsterCast.ViewModel
             this.NavigationService = _navigationService;
             this.DialogService = _dialogService;
             _progress = new Progress<int>(ProgressHandler);
-            MediaAction = new RelayCommand<object>(FetchingAllCasts);
+            MediaAction = new RelayCommand(FetchingAllCasts);
         }
 
         private void ProgressHandler(int value)
@@ -70,7 +70,7 @@ namespace MonsterCast.ViewModel
         }
 
         //executed when MediaOpened's event of MediaElement is triggered.. 
-        public async void FetchingAllCasts(object sender)
+        public async void FetchingAllCasts()
         {
             _progress.Report(0);        
             using (var _httpClient = new HttpClient())
@@ -92,7 +92,7 @@ namespace MonsterCast.ViewModel
                     Messenger.Send(new NotificationMessage("podcasts collection has set"));
                     NavigationService.NavigateTo(ViewModelLocator.MainViewKey);
 
-                    (sender as MediaElement).Stop();
+                    //(sender as MediaElement).Stop();
                 }
                 catch (Exception e)
                 {
@@ -103,14 +103,14 @@ namespace MonsterCast.ViewModel
                         await DialogService.ShowError(
                             "Oop! Something went wrong... click on retry",
                             "Humm... :(", "Retry",
-                            () => FetchingAllCasts(sender));
+                            () => FetchingAllCasts());
                     }
                     else
                     {
                         await DialogService.ShowError(
                             "Please check your internet connection and click on retry",
                             "No Internet", "Retry",
-                            () => FetchingAllCasts(sender));
+                            () => FetchingAllCasts());
                     }
                 }
             }
