@@ -28,7 +28,7 @@ namespace MonsterCast.ViewModel
         private INavigationService NavigationService = null;
         private IDialogService DialogService = null;
         private const string podcastAddress = "https://www.monstercat.com/podcast/feed.xml";
-        private IEnumerable<Cast> podcastCollection = null;
+        
         IProgress<int> _progress = null;
         #endregion
 
@@ -78,17 +78,17 @@ namespace MonsterCast.ViewModel
                 try
                 {
                     var _httpTask = _httpClient.GetStreamAsync(podcastAddress);
-                    podcastCollection = await await _httpTask.ContinueWith(async (t) =>
+                    AppConstants.PodcastCollection = await await _httpTask.ContinueWith(async (t) =>
                      {
                          _progress.Report(5);
                          var dynamicCollection = await XmlHelper.Parse(t.Result);
                          _progress.Report(5);
 
-                         return await ConvertToCastObject(dynamicCollection.AsEnumerable());
+                         return await ConvertToCastObject(dynamicCollection);
                      }, TaskContinuationOptions.OnlyOnRanToCompletion);
 
 
-                    AppConstants.PodcastCollection = podcastCollection;
+                   
                     Messenger.Send(new NotificationMessage("podcasts collection has set"));
                     NavigationService.NavigateTo(ViewModelLocator.MainViewKey);
 
@@ -123,11 +123,12 @@ namespace MonsterCast.ViewModel
             int _progressCount = 1;
             int _collectionCount = _collection.Count();
             int percent = 0;
+
             return await await Task.Factory.StartNew(async () =>
             {
-                foreach (var item in _collection)
+                await DispatcherHelper.RunAsync(() =>
                 {
-                    await DispatcherHelper.RunAsync(() =>
+                    foreach (var item in _collection)
                     {
                         var newCast = new Cast
                         {
@@ -138,9 +139,7 @@ namespace MonsterCast.ViewModel
                             Address = item.image["href"],
                             Song = item.enclosure["url"]
                         };
-                        //var str = await Helpers.FetchImageAsync(newCast.Address);
-                        //if (str != string.Empty)
-                        //    newCast.Address = str;
+                     
                         _castCollection.Add(newCast);
 
                         //compute the percentage... and update the progress bar value
@@ -150,8 +149,8 @@ namespace MonsterCast.ViewModel
                             _progress.Report(percent);
                         }
                         _progressCount++;
-                    });
-                }
+                    }                    
+                });
                 return _castCollection.AsEnumerable();
             });
         }

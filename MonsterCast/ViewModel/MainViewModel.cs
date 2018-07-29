@@ -10,13 +10,28 @@ using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.UI.Xaml.Controls;
 using System.Diagnostics;
+using Windows.UI.Xaml.Input;
+using MonsterCast.Core;
+using Windows.UI.Xaml.Navigation;
 
 namespace MonsterCast.ViewModel
 {
     public class MainViewModel : ViewModelBase
     {
         #region Fields
-        private RelayCommand<ItemClickEventArgs> _menuItemCommand = null;
+        private readonly RelayCommand<NavigationViewSelectionChangedEventArgs> _selectedMenuItemCommand = null;
+        private readonly RelayCommand<ItemClickEventArgs> _optionalMenuItemCommand = null;
+        private readonly RelayCommand<ManipulationCompletedRoutedEventArgs> _thumbManipulationCommand = null;
+        private readonly RelayCommand<NavigationViewBackRequestedEventArgs> _backButtonCommand = null;
+        private readonly RelayCommand<NavigationEventArgs> _hostedFrameNavigatedCommand = null;
+        private Dictionary<MenuItemEnum, MenuItem> _internalPageTypeTag => new Dictionary<MenuItemEnum, MenuItem>
+            {
+                {MenuItemEnum.ALL_PODCAST, new MenuItem{ PageType = typeof(DefaultView)} } ,
+                {MenuItemEnum.NOW_PLAYING, new MenuItem{ PageType = typeof(NowPlayingView)} } ,
+                {MenuItemEnum.YOUR_FAVORITES, new MenuItem{ PageType = typeof(FavoriteCastView)} } ,
+                {MenuItemEnum.LIVE, new MenuItem{ PageType = typeof(LiveView)} },
+                {MenuItemEnum.ABOUT, new MenuItem{ PageType = typeof(AboutView)} }
+        };
         private IMessenger _messenger = null;
 
         private Cast _activeMedia = null;
@@ -27,20 +42,31 @@ namespace MonsterCast.ViewModel
         private double _positionValue = 0.0;
 
         private bool _isBufferingProgress = false;
+
+        private NavigationView _mainNavigationView = null;
+        private Frame _hostedFrame = null;
+        private NavigationViewBackButtonVisible _isBackButtonVisible = NavigationViewBackButtonVisible.Collapsed;
         #endregion
 
         #region Properties
-        public RelayCommand<ItemClickEventArgs> MenuItemCommand => _menuItemCommand;
-        public List<MenuItem> MenuItemCollection => new List<MenuItem>
+        public RelayCommand<NavigationViewSelectionChangedEventArgs> SelectedMenuItemCommand => _selectedMenuItemCommand;       
+        public RelayCommand<ItemClickEventArgs> OptionalMenuItemCommand => _optionalMenuItemCommand;
+        public RelayCommand<ManipulationCompletedRoutedEventArgs> ThumbManipulationCommand => _thumbManipulationCommand;
+        public RelayCommand<NavigationViewBackRequestedEventArgs> BackButtonCommand => _backButtonCommand;
+        public RelayCommand<NavigationEventArgs> HostedFrameNavigatedCommand => _hostedFrameNavigatedCommand;
+       
+        public List<NavigationViewItem> MenuItemCollection => new List<NavigationViewItem>
         {
-            new MenuItem {Icon = "ms-appx:///Assets/Menu/nowplaying.png", Name = "Now Playing", PageType = typeof(NowPlayingView)},
-            new MenuItem {Icon = "ms-appx:///Assets/Menu/cast.png", Name ="Your casts", PageType = typeof(FavoriteCastView) },
-            new MenuItem {Icon = "ms-appx:///Assets/Menu/live.png", Name ="Live", PageType = typeof(LiveView) },            
+
+            new NavigationViewItem { Icon = new FontIcon() { Glyph= "\uE93C", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") } , Content = "All podcasts", Tag = MenuItemEnum.ALL_PODCAST},
+            new NavigationViewItem { Icon = new FontIcon(){ Glyph= "\uE7F6", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") }, Content = "Now Playing", Tag = MenuItemEnum.NOW_PLAYING},
+            new NavigationViewItem { Icon = new FontIcon(){ Glyph= "\uE728", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") } , Content ="Your favorites", Tag= MenuItemEnum.YOUR_FAVORITES},
+            //new MenuItem {Icon = "ms-appx:///Assets/Menu/live.png", Name ="Live", PageType = typeof(LiveView) },            
         };
 
-        public List<MenuItem> OptionalItemCollection => new List<MenuItem>
+        public List<NavigationViewItem> OptionalItemCollection => new List<NavigationViewItem>
         {
-            new MenuItem {Icon = "ms-appx:///Assets/Menu/info.png", Name ="About", PageType = typeof(AboutView) },            
+            new NavigationViewItem { Icon = new FontIcon(){ Glyph= "\uE946", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") } , Content ="About", Tag=MenuItemEnum.ABOUT}
         };
 
         public Cast ActiveMedia
@@ -86,6 +112,24 @@ namespace MonsterCast.ViewModel
         {
             get { return _isBufferingProgress; }
             set { Set(() => IsBufferingProgress, ref _isBufferingProgress, value); }
+        }                                           
+
+
+        public NavigationView MainNavigationView
+        {
+            get { return _mainNavigationView; }
+            set { Set(() => MainNavigationView, ref _mainNavigationView, value); }
+        }
+        public Frame HostedFrame
+        {
+            get { return _hostedFrame; }
+            set { Set(() => HostedFrame, ref _hostedFrame, value); }
+        }
+
+        public NavigationViewBackButtonVisible IsBackButtonVisible
+        {
+            get { return _isBackButtonVisible; }
+            set { Set(() => IsBackButtonVisible, ref _isBackButtonVisible, value); }
         }
         #endregion
 
@@ -94,8 +138,12 @@ namespace MonsterCast.ViewModel
             _messenger = messenger;
             _messenger.Register<GenericMessage<Type>>(this, "nav_request", NavRequestAction);
             _messenger.Register<GenericMessage<Cast>>(this, "play_request", PlayRequestAction);
-
-            _menuItemCommand = new RelayCommand<ItemClickEventArgs>(RelayCommandHandler);
+            
+            _selectedMenuItemCommand = new RelayCommand<NavigationViewSelectionChangedEventArgs>(SelectedMenuItemRelayCommand);
+            _optionalMenuItemCommand = new RelayCommand<ItemClickEventArgs>(OptionalRelayCommandHandler);
+            _thumbManipulationCommand = new RelayCommand<ManipulationCompletedRoutedEventArgs>(ThumbManipulationRelayCommand);
+            _backButtonCommand = new RelayCommand<NavigationViewBackRequestedEventArgs>(BackButtonRelayCommand);
+            _hostedFrameNavigatedCommand = new RelayCommand<NavigationEventArgs>(HostedFrameNavigatedRelayCommand);
 
             AppConstants.Player.BufferingStarted += Player_BufferingStartedAsync;
             AppConstants.Player.BufferingEnded += Player_BufferingEndedAsync;
@@ -107,16 +155,21 @@ namespace MonsterCast.ViewModel
             AppConstants.Player.Volume = _volume;
         }
 
-        
-
+        #region Messenger_Method
         private void PlayRequestAction(GenericMessage<Cast> args)
         {
             ActiveMedia = args.Content;
-            AppConstants.Player.Source = MediaSource.CreateFromUri(new Uri(args.Content.Song, UriKind.Absolute));           
+            AppConstants.Player.Source = MediaSource.CreateFromUri(new Uri(args.Content.Song, UriKind.Absolute));
             AppConstants.Player.Play();
         }
 
+        private void NavRequestAction(GenericMessage<Type> arg)
+        {
+            Messenger.Default.Send(arg.Content);
+        }
+        #endregion
 
+        #region MediaPlayer_Method
         private async void PlaybackSession_PlaybackStateChangedAsync(MediaPlaybackSession sender, object args)
         {
             Debug.WriteLine("playback  changed");
@@ -193,17 +246,49 @@ namespace MonsterCast.ViewModel
             });
             
         }
+        #endregion
 
-        private void NavRequestAction(GenericMessage<Type> arg)
+        #region RelayCommand_Method
+        private void HostedFrameNavigatedRelayCommand(NavigationEventArgs obj)
         {
-            Messenger.Default.Send(arg.Content);
+            if (HostedFrame != null)
+            {
+                IsBackButtonVisible = HostedFrame.CanGoBack ? NavigationViewBackButtonVisible.Visible : NavigationViewBackButtonVisible.Collapsed;
+            }
         }
 
-        //MenuItem click event handler
-        private void RelayCommandHandler(ItemClickEventArgs arg)
+        private void ThumbManipulationRelayCommand(ManipulationCompletedRoutedEventArgs args)
         {
-            var clickedItem = arg.ClickedItem as MenuItem;
+            args.Handled = true;
+            var source = args.OriginalSource as Slider;
+            AppConstants.Player.PlaybackSession.Position = TimeSpan.FromSeconds(source.Value);
+        }
+        private void BackButtonRelayCommand(NavigationViewBackRequestedEventArgs args)
+        {
+            HostedFrame.GoBack();
+        }
+
+        private void SelectedMenuItemRelayCommand(NavigationViewSelectionChangedEventArgs args)
+        {
+            var navigationViewItem = args.SelectedItem as NavigationViewItem;
+            var clickedItem = _internalPageTypeTag[(MenuItemEnum)navigationViewItem.Tag];
+            Messenger.Default.Send(clickedItem);
+
+            //var navItem = obj.SelectedItem as UIElementCollection;
+            //var d = Windows.UI.Xaml.Media.VisualTreeHelper.GetChild(navItem, 0);
+            //var d = f.FindName("SelectionIndicator");
+
+        }
+
+        private void OptionalRelayCommandHandler(ItemClickEventArgs args)
+        {
+            var navigationViewItem = OptionalItemCollection.Find(e => (string)e.Content == (string)args.ClickedItem);
+
+            var clickedItem = _internalPageTypeTag[(MenuItemEnum)navigationViewItem.Tag];
             Messenger.Default.Send(clickedItem);
         }
+        #endregion
+
+
     }
 }

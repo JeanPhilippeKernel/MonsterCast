@@ -33,10 +33,9 @@ namespace MonsterCast.View
     public sealed partial class MainView : Page
     {
         #region Fields
-        private Frame MainFrame = null;
-        private SystemNavigationManager _systemNavigationManager = null;
         private IMessenger _messenger = null;
         private INavigationService _navigationService = null;
+        private MainViewModel _mainVM = null;
         #endregion
 
         public MainView()
@@ -44,69 +43,34 @@ namespace MonsterCast.View
             this.InitializeComponent();
             NavigationCacheMode = NavigationCacheMode.Required;
 
+            _mainVM = ServiceLocator.Current.GetInstance<MainViewModel>();
             _messenger = ServiceLocator.Current.GetInstance<IMessenger>();
-            MainFrame = (Frame)Window.Current.Content;
-            MainFrame.ContentTransitions = new TransitionCollection { new EntranceThemeTransition() };
-
             _navigationService = ServiceLocator.Current.GetInstance<INavigationService>();
 
+            _mainVM.MainNavigationView = MainNavigationView;
+            _mainVM.HostedFrame = HostedFrame;
+                                                                            
             Messenger.Default.Register<MenuItem>(this, MessageAction);
             Messenger.Default.Register<Type>(this, NavRequestAction);
-
-            _systemNavigationManager = SystemNavigationManager.GetForCurrentView();
-            _systemNavigationManager.BackRequested += _systemNavigationManager_BackRequested;
-
-            HostedFrame.Navigated += HostedFrame_Navigated;
-            MainFrame.Navigated += MainFrame_Navigated;
-
-            HostedFrame.Navigate(typeof(DefaultView));
+            
+            _mainVM.HostedFrame.Navigate(typeof(DefaultView));
 
             AppConstants.Player.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChangedAsync;
         }
 
-        
-
         private void NavRequestAction(Type arg)
         {
-            HostedFrame.Navigate(arg);
+            _mainVM.HostedFrame.Navigate(arg);
         }
 
         private void MessageAction(MenuItem arg)
         {
-            if (arg.PageType == typeof(LiveView))
-                _navigationService.NavigateTo(ViewModelLocator.LiveViewKey);
-            else
-                HostedFrame.Navigate(arg.PageType);
+            //if (arg.PageType == typeof(LiveView))
+            //    _navigationService.NavigateTo(ViewModelLocator.LiveViewKey);
+            //else
+                _mainVM.HostedFrame.Navigate(arg.PageType);
         }
 
-        private void MainFrame_Navigated(object sender, NavigationEventArgs e)
-        {
-            _systemNavigationManager.AppViewBackButtonVisibility = MainFrame.CanGoBack ?
-                 AppViewBackButtonVisibility.Visible : AppViewBackButtonVisibility.Collapsed;
-        }
-
-        private void HostedFrame_Navigated(object sender, NavigationEventArgs e)
-        {
-
-            _systemNavigationManager.AppViewBackButtonVisibility = HostedFrame.CanGoBack ?
-                AppViewBackButtonVisibility.Visible : AppViewBackButtonVisibility.Collapsed;
-        }
-
-        private void _systemNavigationManager_BackRequested(object sender, BackRequestedEventArgs e)
-        {
-            if (_navigationService.CurrentPageKey == ViewModelLocator.LiveViewKey)
-            {
-                if (MainFrame.CanGoBack)
-                {
-                    MainFrame.GoBack();
-                    _messenger.Send(new GenericMessage<string>("invoke pause"));
-                }
-            }
-            else if (HostedFrame.CanGoBack)
-            {
-                HostedFrame.GoBack();
-            }
-        }
 
         private void SoundGrid_Tapped(object sender, TappedRoutedEventArgs e)
         {
@@ -121,28 +85,18 @@ namespace MonsterCast.View
             {
                 await DispatcherHelper.RunAsync(() =>
                 {
-                    PlayButton.Visibility = Visibility.Collapsed;
-                    PauseButton.Visibility = Visibility.Visible;
+                    PlayButton.Glyph = "\uE769";
+                                    
                 });
             }
             else if (sender.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
             {
                 await DispatcherHelper.RunAsync(() =>
                 {
-                    PlayButton.Visibility = Visibility.Visible;
-                    PauseButton.Visibility = Visibility.Collapsed;
+                    PlayButton.Glyph = "\uE768";
+                  
                 });
             }                                                 
-        }
-
-        private void PauseButton_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-            if(AppConstants.Player.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
-            {
-                AppConstants.Player.Pause();
-                PauseButton.Visibility = Visibility.Collapsed;
-                PlayButton.Visibility = Visibility.Visible;
-            }
         }
 
         private void PlayButton_Tapped(object sender, TappedRoutedEventArgs e)
@@ -150,8 +104,13 @@ namespace MonsterCast.View
            if(AppConstants.Player.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
             {
                 AppConstants.Player.Play();
-                PlayButton.Visibility = Visibility.Collapsed;
-                PauseButton.Visibility = Visibility.Visible;
+                PlayButton.Glyph = "\uE769";
+                   
+            }
+           else if(AppConstants.Player.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
+            {
+                AppConstants.Player.Pause();
+                PlayButton.Glyph = "\uE768";
             }
         }
 
@@ -159,23 +118,14 @@ namespace MonsterCast.View
         {
             AppConstants.Player.IsLoopingEnabled = AppConstants.Player.IsLoopingEnabled == true ? false : true;
 
-            if(AppConstants.Player.IsLoopingEnabled)
-            {
-                var grid = sender as Grid;
-                foreach (var item in grid.Children)
-                {
-                    var pathObject = item as Windows.UI.Xaml.Shapes.Path;
-                    pathObject.Fill = new SolidColorBrush(Colors.Orange);
-                }
+            var icon = sender as FontIcon;
+            if (AppConstants.Player.IsLoopingEnabled)
+            {                
+                icon.Foreground = new SolidColorBrush(Colors.Orange);                
             }
             else
             {
-                var grid = sender as Grid;
-                foreach (var item in grid.Children)
-                {
-                    var pathObject = item as Windows.UI.Xaml.Shapes.Path;
-                    pathObject.Fill = new SolidColorBrush(Colors.White);
-                }
+                icon.Foreground = new SolidColorBrush(Colors.White);               
             }
         }
     }
