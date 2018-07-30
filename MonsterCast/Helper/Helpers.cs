@@ -129,42 +129,39 @@ namespace MonsterCast.Helper
 
         public static async Task<string> FetchImageAsync(string url, string castIdentifier)
         {
-            return await await Task.Factory.StartNew(async () =>
-             {
-                 var _imagePath = string.Empty;
-                 using (var _httpClient = new HttpClient())
-                 {
-                     var fileExtension = Path.GetExtension(url);
-                     //generate filename by cast's song url
-                     var generatedFileName = string.Concat(Path.GetFileNameWithoutExtension(castIdentifier), fileExtension);
-                     var exist = await CheckFileExistAsync(generatedFileName);
-                     if (!exist)
-                     {
-                         try
-                         {
-                             var content = await _httpClient.GetByteArrayAsync(url);
-                             var imageFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(generatedFileName, CreationCollisionOption.OpenIfExists);
-                             using (var stream = await imageFile.OpenStreamForWriteAsync())
-                             {
-                                 stream.Position = 0;
-                                 await stream.WriteAsync(content, 0, content.Length);
-                                 await stream.FlushAsync();
-                                 _imagePath = imageFile.Path;
-                             }
-                         }
-                         catch (Exception ex)
-                         {
-                             Debug.WriteLine($"[*] Helper : Error while creating file on app local folder - Infos : {ex.Message}");
-                         }
-                     }
-                     else
-                     {
-                         var f = await ApplicationData.Current.LocalFolder.GetFileAsync(generatedFileName);
-                         _imagePath = f.Path;
-                     }
-                 }
-                 return _imagePath;
-             });
+            var _imagePath = string.Empty;
+            using (var _httpClient = new HttpClient())
+            {
+                var fileExtension = Path.GetExtension(url);
+                //generate filename by cast's song url
+                var generatedFileName = string.Concat(Path.GetFileNameWithoutExtension(castIdentifier), fileExtension);
+                var exist = await CheckFileExistAsync(generatedFileName);
+                if (!exist)
+                {
+                    try
+                    {
+                        var content = await _httpClient.GetByteArrayAsync(url);
+                        var imageFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(generatedFileName, CreationCollisionOption.OpenIfExists);
+                        using (var stream = await imageFile.OpenStreamForWriteAsync())
+                        {
+                            stream.Position = 0;
+                            await stream.WriteAsync(content, 0, content.Length);
+                            await stream.FlushAsync();
+                            _imagePath = imageFile.Path;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[*] Helper : Error while creating file on app local folder - Infos : {ex.Message}");
+                    }
+                }
+                else
+                {
+                    var f = await ApplicationData.Current.LocalFolder.GetFileAsync(generatedFileName);
+                    _imagePath = f.Path;
+                }
+            }
+            return _imagePath;
         }
 
         public static void FetchImageParallel(ref IEnumerable<Cast> collection)

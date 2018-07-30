@@ -9,6 +9,7 @@ using SQLite;
 using System;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -59,6 +60,17 @@ namespace MonsterCast
                 this.DebugSettings.EnableFrameRateCounter = true;
             }
 #endif
+
+            Windows.ApplicationModel.Core.CoreApplication.GetCurrentView().TitleBar.ExtendViewIntoTitleBar = true;
+
+            
+            var viewTitleBar = ApplicationView.GetForCurrentView().TitleBar;
+            viewTitleBar.ButtonBackgroundColor = Windows.UI.Colors.Transparent;
+            viewTitleBar.ButtonInactiveBackgroundColor = Windows.UI.Colors.Transparent;
+            viewTitleBar.ButtonForegroundColor = Windows.UI.Colors.White;
+            //viewTitleBar.ButtonForegroundColor = (Windows.UI.Color)Resources["SystemBaseHighColor"];
+
+                                      
             Frame rootFrame = Window.Current.Content as Frame;
                                                           
             // Ne répétez pas l'initialisation de l'application lorsque la fenêtre comporte déjà du contenu,

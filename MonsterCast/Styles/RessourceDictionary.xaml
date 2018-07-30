@@ -7,20 +7,33 @@
     xmlns:Behaviors="using:Microsoft.Toolkit.Uwp.UI.Animations.Behaviors" 
     xmlns:Core="using:Microsoft.Xaml.Interactions.Core"
     xmlns:CustomControl="using:MonsterCast.Controls"
-    xmlns:ViewModel="using:MonsterCast.ViewModel">
+    xmlns:ViewModel="using:MonsterCast.ViewModel"
+    xmlns:Converter="using:MonsterCast.Converter"
+    xmlns:Model="using:MonsterCast.Model"
+    xmlns:MicrosoftUI="using:Microsoft.UI.Xaml.Controls">
 
     <ViewModel:ViewModelLocator x:Key="ViewModelLocator"/>
+    <Converter:SliderToolTipConverter x:Key="SliderToolTipConverter" />
 
-    <DataTemplate x:Key="MenuItemTemplate">
+    <!--<DataTemplate x:Key="MenuItemTemplate">
+        --><!--<TextBlock Text="{Binding Name}" />-->
+        <!--<TextBlock Text="{Binding Name}"/>-->
+        <!--<NavigationViewItem>
+            <NavigationViewItem.Icon>
+                
+            </NavigationViewItem.Icon>
+        </NavigationViewItem>--><!--
+
         <Grid Width="280" Height="48">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="48"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Image Grid.Column="0" Source="{Binding Icon, Mode=OneWay}" Stretch="None"/>
+            <FontIcon Grid.Column="0" FontFamily="Segoe MDL2 Assets" Glyph="{Binding GlyphIcon, Mode=OneWay}"/>
+            --><!--<Image Grid.Column="0" Source="{Binding Icon, Mode=OneWay}" Stretch="none"/>--><!--
             <TextBlock Grid.Column="1" Text="{Binding Name, Mode=OneWay}" FontSize="16" VerticalAlignment="Center" Foreground="White" />
         </Grid>
-    </DataTemplate>
+    </DataTemplate>-->
     <DataTemplate x:Key="FlipViewItemTemplate">
         <Grid>
             <Grid.ColumnDefinitions>

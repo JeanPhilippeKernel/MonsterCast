@@ -61,18 +61,16 @@ namespace MonsterCast.View
 
                 for (int i = 0; i < splitedCollection.Count(); i++)
                 {
+                    collection = splitedCollection.ElementAt(i);
+                    Helpers.FetchImageParallel(ref collection);
                     if ((i == 0) || (i == 1))
-                    {
-                        collection = splitedCollection.ElementAt(i).AsEnumerable();
-                        Helpers.FetchImageParallel(ref collection);
+                    {                       
                         ContentRoot.Children.Add(CreateGridChild(collection, _withBg));
                         _withBg = _withBg == true ? false : true;
                     }
 
                     else
-                    {
-                        collection = splitedCollection.ElementAt(i).AsEnumerable();
-                        Helpers.FetchImageParallel(ref collection);
+                    {                       
                         ContentRoot.Children.Add(CreateGridChild(collection, _withBg, Visibility.Collapsed));
                         _withBg = _withBg == true ? false : true;
                     }

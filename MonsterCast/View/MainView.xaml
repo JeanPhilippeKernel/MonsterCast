@@ -5,7 +5,7 @@
     xmlns:local="using:MonsterCast.View"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:Control="using:Microsoft.Toolkit.Uwp.UI.Controls"
+    xmlns:MicrosoftUI="using:Microsoft.UI.Xaml.Controls"
     xmlns:Interactivity="using:Microsoft.Xaml.Interactivity" 
     xmlns:Behaviors="using:Microsoft.Toolkit.Uwp.UI.Animations.Behaviors"
     xmlns:Core="using:Microsoft.Xaml.Interactions.Core"
@@ -21,106 +21,56 @@
                 <RowDefinition MaxHeight="66" MinHeight="66"/>
             </Grid.RowDefinitions>
             <!--Main content area -->
-            <Grid x:Name="RootContent" Canvas.ZIndex="100"
-                  Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-                <Control:HamburgerMenu x:Name="HamburgerMenu" Background="Black" Foreground="White"
-                                       OpenPaneLength="240" DisplayMode="CompactInline"
-                                       ItemTemplate="{StaticResource MenuItemTemplate}"
-                                       OptionsItemTemplate="{StaticResource MenuItemTemplate}"                                      
-                                       ItemsSource="{Binding MenuItemCollection}"
-                                       OptionsItemsSource="{Binding OptionalItemCollection}">
-                    <Control:HamburgerMenu.ContentTransitions>
+
+            <Grid x:Name="RootContent" Canvas.ZIndex="100">
+                <NavigationView x:Name="MainNavigationView" OpenPaneLength="240" 
+                                IsBackEnabled="True" IsBackButtonVisible="{Binding IsBackButtonVisible}"
+                                IsSettingsVisible="False"
+                                MenuItemsSource="{Binding MenuItemCollection}"
+                                Background="{ThemeResource SystemControlAltHighAcrylicElementBrush}"
+                                AlwaysShowHeader="False">
+
+                    <NavigationView.PaneFooter>
+                        <NavigationViewList ItemsSource="{Binding OptionalItemCollection}" 
+                                            IsItemClickEnabled="true" SelectionMode="Single">
+                            <Interactivity:Interaction.Behaviors>
+                                <Core:EventTriggerBehavior EventName="ItemClick">
+                                    <Core:InvokeCommandAction Command="{Binding OptionalMenuItemCommand}"/>
+                                </Core:EventTriggerBehavior>
+                            </Interactivity:Interaction.Behaviors>
+                        </NavigationViewList>
+                    </NavigationView.PaneFooter>
+                    <NavigationView.ContentTransitions>
                         <TransitionCollection>
                             <EntranceThemeTransition/>
                         </TransitionCollection>
-                    </Control:HamburgerMenu.ContentTransitions>
+                    </NavigationView.ContentTransitions>
+
                     <Frame Background="Black" x:Name="HostedFrame" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
                         <Frame.ContentTransitions>
                             <TransitionCollection>
                                 <EntranceThemeTransition />
                             </TransitionCollection>
                         </Frame.ContentTransitions>
+
+                        <Interactivity:Interaction.Behaviors>
+                            <Core:EventTriggerBehavior EventName="Navigated">
+                                <Core:InvokeCommandAction Command="{Binding HostedFrameNavigatedCommand}"/>
+                            </Core:EventTriggerBehavior>
+                        </Interactivity:Interaction.Behaviors>
                     </Frame>
-                    <Control:HamburgerMenu.PaneBackground>
-                        <SolidColorBrush Color="#FF0F0F0F" Opacity="0.94"/>
-                    </Control:HamburgerMenu.PaneBackground>
+
                     <Interactivity:Interaction.Behaviors>
-                        <Core:EventTriggerBehavior EventName="ItemClick">
-                            <Core:InvokeCommandAction Command="{Binding MenuItemCommand}"/>
+                    
+                        <Core:EventTriggerBehavior EventName="SelectionChanged">
+                            <Core:InvokeCommandAction Command="{Binding SelectedMenuItemCommand}"/>
                         </Core:EventTriggerBehavior>
-                        <Core:EventTriggerBehavior EventName="OptionsItemClick">
-                            <Core:InvokeCommandAction Command="{Binding MenuItemCommand}"
-                                                  CommandParameter="{Binding SelectedItem, ElementName=HamburgerMenu}"/>
+                        <Core:EventTriggerBehavior EventName="BackRequested">
+                            <Core:InvokeCommandAction Command="{Binding BackButtonCommand}"/>
                         </Core:EventTriggerBehavior>
                     </Interactivity:Interaction.Behaviors>
-                </Control:HamburgerMenu>
+                </NavigationView>
             </Grid>
-
-            <!--<Grid x:Name="CastAddNotif" Canvas.ZIndex="500"
-                  Visibility="Collapsed"
-                  VerticalAlignment="Top" HorizontalAlignment="Right"
-                  Margin="0,210,10,0" MinWidth="300" 
-                  MaxWidth="300" MinHeight="44" MaxHeight="44">
-                <Grid.Transitions>
-                    <TransitionCollection>
-                        <EntranceThemeTransition IsStaggeringEnabled="True"/>
-                    </TransitionCollection>
-                </Grid.Transitions>
-                <Grid.Background>
-                    <ImageBrush Stretch="UniformToFill" ImageSource="ms-appx:///Assets/Backgrounds/boxbg.jpg"/>
-                </Grid.Background>
-                <StackPanel Orientation="Horizontal" CornerRadius="12">
-                    <Grid MinWidth="44"  MaxWidth="44">
-                        <Grid.Background>
-                            <ImageBrush Stretch="UniformToFill" ImageSource="https://i1.sndcdn.com/artworks-000227654422-et1eey-t200x200.jpg"/>
-                        </Grid.Background>
-                    </Grid>
-                    <StackPanel Orientation="Vertical"
-                                MinWidth="50"
-                                VerticalAlignment="Center">
-                        <TextBlock Text="Montercat Ep 150. Call of wild"
-                                   Foreground="White" FontSize="15"
-                                   FontFamily="Segoe UI"
-                                   TextWrapping="Wrap" Margin="5,0,5,0" 
-                                   MaxWidth="300" TextTrimming="CharacterEllipsis" MaxLines="1"/>
-
-                        <TextBlock Text="Added to favorite" FontWeight="Bold" Margin="5" 
-                                   Foreground="White" HorizontalAlignment="Right" FontSize="15"/>
-                    </StackPanel>
-                </StackPanel>
-            </Grid>
-            <Grid x:Name="castPlaying" Canvas.ZIndex="500"
-                  Visibility="Collapsed"
-                  VerticalAlignment="Bottom" HorizontalAlignment="Right" 
-                  Margin="0,0,10,10" MinWidth="300" MaxWidth="300" MinHeight="44" MaxHeight="44">
-                <Grid.Transitions>
-                    <TransitionCollection>
-                        <EntranceThemeTransition IsStaggeringEnabled="True"/>
-                    </TransitionCollection>
-                </Grid.Transitions>
-                <Grid.Background>
-                    <ImageBrush Stretch="UniformToFill" ImageSource="ms-appx:///Assets/Backgrounds/boxbg.jpg"/>
-                </Grid.Background>
-                <StackPanel Orientation="Horizontal">
-                    <Grid MinWidth="44"  MaxWidth="44">
-                        <Grid.Background>
-                            <ImageBrush Stretch="UniformToFill" ImageSource="https://i1.sndcdn.com/artworks-000227654422-et1eey-t200x200.jpg"/>
-                        </Grid.Background>
-                    </Grid>
-                    <StackPanel Orientation="Vertical"
-                                MinWidth="50"
-                                VerticalAlignment="Center">
-                        <TextBlock Text="Montercat Ep 150. Call of wild"
-                                   Foreground="White" FontSize="15"
-                                   FontFamily="Segoe UI"
-                                   TextWrapping="Wrap" Margin="5,0,5,0" 
-                                   MaxWidth="300" TextTrimming="CharacterEllipsis" MaxLines="1"/>
-
-                        <TextBlock Text="Now playing" FontWeight="Bold" Margin="5" 
-                                   Foreground="White" HorizontalAlignment="Right" FontSize="15"/>
-                    </StackPanel>
-                </StackPanel>
-            </Grid>-->
 
             <!--player area -->
             <Grid x:Name="player" Grid.Row="1"
@@ -142,38 +92,18 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal">
-                        <Path Fill="White" Width="20" Height="14" 
-                          Data="M0.1,7.2l9.5-6.7c0.1-0.1,0.2-0.1,0.4,0c0.1,0.1,0.2,0.2,0.2,0.3v6.3l9.3-6.6c0.1-0.1,0.2-0.1,0.4,0C19.9,0.5,20,0.6,20,0.8v13.5c0,0.1-0.1,0.3-0.2,0.3c-0.1,0-0.1,0-0.2,0c-0.1,0-0.1,0-0.2-0.1l-9.3-6.6v6.3c0,0.1-0.1,0.3-0.2,0.3c-0.1,0-0.1,0-0.2,0c-0.1,0-0.1,0-0.2-0.1L0.1,7.8C0.1,7.7,0,7.6,0,7.5C0,7.4,0.1,7.3,0.1,7.2z" d:IsLocked="True"/>
-                        
-                        <StackPanel x:Name="PauseButton" Visibility="Collapsed" Margin="30,0,0,0" Orientation="Horizontal"
-                                    Tapped="PauseButton_Tapped">
-                            <Path Fill="White" Width="12" Height="26"
-                                Data="M8.3,25.1c0,0.5-0.4,0.9-0.9,0.9h-5c-0.5,0-0.9-0.4-0.9-0.9V0.9C1.5,0.4,1.9,0,2.4,0h5c0.5,0,0.9,0.4,0.9,0.9V25.1L8.3,25.1z" RenderTransformOrigin="0.5,0.5" UseLayoutRounding="False">
-                                <Path.RenderTransform>
-                                    <CompositeTransform Rotation="360" ScaleX="1.2" ScaleY="1.2"/>
-                                </Path.RenderTransform>
-                            </Path>
-                            <Path Fill="White" Width="10" Height="26" Margin="0,0,0,0"
-                                Data="M8.3,25.1c0,0.5-0.4,0.9-0.9,0.9h-5c-0.5,0-0.9-0.4-0.9-0.9V0.9C1.5,0.4,1.9,0,2.4,0h5c0.5,0,0.9,0.4,0.9,0.9V25.1L8.3,25.1z" RenderTransformOrigin="0.5,0.5" UseLayoutRounding="False">
-                                <Path.RenderTransform>
-                                    <CompositeTransform Rotation="360" ScaleX="1.2" ScaleY="1.2"/>
-                                </Path.RenderTransform>
-                            </Path>
-                        </StackPanel>
-
-                        <Path x:Name="PlayButton" Fill="White" Width="20" Height="26" Margin="30,0,0,0" Tapped="PlayButton_Tapped"
-                              Data="M19.2,12.5L1.5,0.1C1.3,0,1,0,0.8,0.1C0.6,0.2,0.5,0.4,0.5,0.6v24.8c0,0.2,0.1,0.4,0.3,0.5C0.9,26,1,26,1.1,26c0.1,0,0.2,0,0.3-0.1l17.8-12.4c0.2-0.1,0.3-0.3,0.3-0.5C19.5,12.8,19.4,12.6,19.2,12.5z" RenderTransformOrigin="0.5,0.5">
-                            <Path.RenderTransform>
-                                <CompositeTransform Rotation="360" ScaleX="1.2" ScaleY="1.2"/>
-                            </Path.RenderTransform>
-                        </Path>
-
-                        <Path Fill="White"  Width="20" Height="14" Margin="30,0,0,0"
-                          Data="M19.9,7.2l-9.5-6.7c-0.1-0.1-0.2-0.1-0.4,0C9.9,0.5,9.8,0.6,9.8,0.8v6.3L0.6,0.5c-0.1-0.1-0.2-0.1-0.4,0C0.1,0.5,0,0.6,0,0.8v13.5c0,0.1,0.1,0.3,0.2,0.3c0.1,0,0.1,0,0.2,0c0.1,0,0.1,0,0.2-0.1l9.3-6.6v6.3c0,0.1,0.1,0.3,0.2,0.3c0.1,0,0.1,0,0.2,0c0.1,0,0.1,0,0.2-0.1l9.5-6.7C19.9,7.7,20,7.6,20,7.5C20,7.4,19.9,7.3,19.9,7.2z" d:IsLocked="True"/>
+                        <FontIcon Width="20" Height="14" Foreground="White" FontFamily="Segoe MDL2 Assets" Glyph="&#xEB9E;" />
+                        <FontIcon x:Name="PlayButton" Foreground="White" FontFamily="Segoe MDL2 Assets" Width="20" Height="26" Margin="30,0,0,0" Glyph="&#xE768;">
+                            <Interactivity:Interaction.Behaviors>
+                                <Core:EventTriggerBehavior EventName="Tapped">
+                                    <Core:InvokeCommandAction Command="{Binding PlayFontIconTappedCommand}"/>
+                                </Core:EventTriggerBehavior>
+                            </Interactivity:Interaction.Behaviors>
+                        </FontIcon>
+                        <FontIcon Width="20" Height="14" Foreground="White" FontFamily="Segoe MDL2 Assets" Glyph="&#xEB9D;" Margin="30,0,0,0"/>
                     </StackPanel>
 
-                    <Grid Grid.Column="1" VerticalAlignment="Top"
-                          MinHeight="20">
+                    <Grid Grid.Column="1" VerticalAlignment="Top" MinHeight="20">
                         <ProgressBar Background="Transparent" IsIndeterminate="{Binding IsBufferingProgress, Mode=OneWay}" Foreground="White"
                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                     </Grid>
@@ -181,32 +111,36 @@
                         <TextBlock Width="55" Margin="0,0,5,0" VerticalAlignment="Center" 
                                    Padding="0,2,0,0" Text="{Binding CurrentMediaStartTime, Mode=OneWay}" 
                                    Foreground="White" d:IsLocked="True"/>
-                        <Slider  VerticalAlignment="Center" MinWidth="300" 
+                        <Slider x:Name="SliderElement"  VerticalAlignment="Center" MinWidth="300" 
                                  Value="{Binding PositionValue, Mode=TwoWay}" Minimum="0" Maximum="{Binding PositionMax, Mode=OneWay}" 
-                                 Margin="15"
-                                 Foreground="White"/>
+                                 Margin="15" ThumbToolTipValueConverter="{StaticResource SliderToolTipConverter}"
+                                 Foreground="White" ManipulationMode="TranslateX" RequiresPointer="WhenEngaged">
+                            <Interactivity:Interaction.Behaviors>
+                                <Core:EventTriggerBehavior EventName="ManipulationCompleted">
+                                    <Core:InvokeCommandAction Command="{Binding ThumbManipulationCompletedCommand}"/>
+                                </Core:EventTriggerBehavior>
+                                <Core:EventTriggerBehavior EventName="ManipulationStarted">
+                                    <Core:InvokeCommandAction Command="{Binding ThumbManipulationStartedCommand}"/>
+                                </Core:EventTriggerBehavior>
+                            </Interactivity:Interaction.Behaviors>
+
+                        </Slider>
                         <TextBlock Width="55" Margin="5,0,0,0" VerticalAlignment="Center" 
                                    Padding="0,2,0,0" Text="{Binding CurrentMediaEndTime, Mode=OneWay}" 
                                    Foreground="White" d:IsLocked="True"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Grid x:Name="LoopButton" MinWidth="30"  Canvas.ZIndex="220" Margin="15" VerticalAlignment="Center" Tapped="Grid_Tapped">
-                            <Path Fill="White"  Canvas.ZIndex="22" 
-                                  Data="M10.4,7.7c-0.3-0.4-0.9-0.4-1.2,0C8.8,8,8.8,8.6,9.2,9l1.2,1.2H5.2c-1.9,0-3.5-1.6-3.5-3.5c0-1.9,1.6-3.5,3.5-3.5h4c0.5,0,0.9-0.4,0.9-0.9c0-0.5-0.4-0.9-0.9-0.9h-4C2.3,1.3,0,3.7,0,6.6C0,9.6,2.3,12,5.2,12h5.1l-1.2,1.2c-0.3,0.4-0.3,0.9,0,1.3c0.2,0.2,0.4,0.3,0.6,0.3c0.2,0,0.5-0.1,0.6-0.3l2.7-2.7c0.3-0.4,0.3-0.9,0-1.3L10.4,7.7z"/>
-                            <Path Fill="White"  Canvas.ZIndex="22"  
-                                Data="M18.8,4h-5.1l1.2-1.2c0.3-0.4,0.3-0.9,0-1.3c-0.3-0.4-0.9-0.4-1.2,0l-2.7,2.7c-0.3,0.4-0.3,0.9,0,1.3l2.7,2.7c0.2,0.2,0.4,0.3,0.6,0.3c0.2,0,0.5-0.1,0.6-0.3c0.3-0.4,0.3-0.9,0-1.3l-1.2-1.2h5.1c1.9,0,3.5,1.6,3.5,3.5s-1.6,3.5-3.5,3.5h-4c-0.5,0-0.9,0.4-0.9,0.9s0.4,0.9,0.9,0.9h4c2.9,0,5.2-2.4,5.2-5.3C24,6.4,21.7,4,18.8,4z"/>
-                        </Grid>
-                        <!--<Grid MinWidth="30" Margin="15" VerticalAlignment="Center">
-                            <Path Fill="White"
-                                  Data="M11.3,8.5c0.3-0.7,0.5-1.3,0.7-1.7c0.2-0.3,0.3-0.6,0.4-0.8c0.1-0.2,0.3-0.4,0.5-0.6c0.2-0.2,0.4-0.4,0.7-0.5c0.2-0.1,0.5-0.1,0.8-0.1h2.4v1.9c0,0.1,0,0.2,0.1,0.2C17,7,17.1,7,17.2,7c0.1,0,0.2,0,0.2-0.1l3-3.2c0.1-0.1,0.1-0.1,0.1-0.2c0-0.1,0-0.2-0.1-0.2l-3-3.2C17.3,0,17.2,0,17.2,0c-0.1,0-0.2,0-0.2,0.1c-0.1,0.1-0.1,0.1-0.1,0.2v1.9h-2.4c-0.4,0-0.8,0.1-1.2,0.2c-0.4,0.1-0.7,0.2-1,0.4c-0.3,0.2-0.6,0.4-0.9,0.7c-0.3,0.3-0.5,0.6-0.7,0.8c-0.2,0.3-0.4,0.6-0.6,1C9.8,5.7,9.7,6.1,9.5,6.4C9.4,6.7,9.2,7.1,9.1,7.5C8.8,8.2,8.5,8.8,8.3,9.2C8.2,9.5,8,9.8,7.9,10c-0.1,0.2-0.3,0.4-0.5,0.6C7.2,10.8,7,11,6.7,11.1c-0.2,0.1-0.5,0.1-0.8,0.1H3.8c-0.1,0-0.2,0-0.2,0.1c-0.1,0.1-0.1,0.1-0.1,0.2v1.9c0,0.1,0,0.2,0.1,0.2c0.1,0.1,0.1,0.1,0.2,0.1h2.1c0.4,0,0.8-0.1,1.2-0.2c0.4-0.1,0.7-0.2,1-0.4C8.4,13,8.7,12.8,9,12.5c0.3-0.3,0.5-0.6,0.7-0.8c0.2-0.3,0.4-0.6,0.6-1c0.2-0.4,0.4-0.8,0.5-1.1C11,9.3,11.1,8.9,11.3,8.5z"/>
-                            <Path Fill="White"
-                                  Data="M3.8,4.8h2.1c0.3,0,0.5,0,0.8,0.1C6.9,5,7.1,5.2,7.3,5.3c0.2,0.1,0.3,0.3,0.5,0.6c0.2,0.2,0.3,0.5,0.4,0.6c0.1,0.2,0.2,0.4,0.4,0.7C9,6,9.4,5.1,9.8,4.5C8.8,3,7.5,2.2,5.9,2.2H3.8c-0.1,0-0.2,0-0.2,0.1C3.5,2.4,3.5,2.5,3.5,2.6v1.9c0,0.1,0,0.2,0.1,0.2C3.6,4.8,3.7,4.8,3.8,4.8z"/>
-                            <Path Fill="White"
-                                Data="M17.4,9.1C17.3,9,17.2,9,17.2,9c-0.1,0-0.2,0-0.2,0.1c-0.1,0.1-0.1,0.1-0.1,0.2v1.9h-2.4c-0.3,0-0.5,0-0.8-0.1c-0.2-0.1-0.4-0.2-0.6-0.4c-0.2-0.1-0.3-0.3-0.5-0.6c-0.2-0.2-0.3-0.5-0.4-0.6c-0.1-0.2-0.2-0.4-0.4-0.7c-0.5,1.2-0.9,2.1-1.3,2.7c0.2,0.3,0.3,0.5,0.5,0.7c0.2,0.2,0.4,0.4,0.5,0.5c0.2,0.2,0.4,0.3,0.6,0.4c0.2,0.1,0.4,0.2,0.6,0.3c0.2,0.1,0.4,0.1,0.6,0.2c0.2,0,0.4,0.1,0.6,0.1c0.2,0,0.4,0,0.7,0.1c0.3,0,0.5,0,0.7,0c0.2,0,0.4,0,0.8,0c0.3,0,0.6,0,0.8,0v1.9c0,0.1,0,0.2,0.1,0.2C17,16,17.1,16,17.2,16c0.1,0,0.2,0,0.2-0.1l3-3.2c0.1-0.1,0.1-0.1,0.1-0.2c0-0.1,0-0.2-0.1-0.2L17.4,9.1z"/>
-                        </Grid>-->
-                        <Grid x:Name="SoundGrid" MinWidth="30"  Canvas.ZIndex="220" Margin="15" VerticalAlignment="Center" Tapped="SoundGrid_Tapped">
-                            <Grid.ContextFlyout>
+                        <FontIcon x:Name="LoopButton" Margin="15" VerticalAlignment="Center" MinWidth="30" Foreground="White" Glyph="&#xEF3B;" >
+                            <Interactivity:Interaction.Behaviors>
+                                <Core:EventTriggerBehavior EventName="Tapped">
+                                    <Core:InvokeCommandAction Command="{Binding LoopFontIconTappedCommand}"/>
+                                </Core:EventTriggerBehavior>
+                            </Interactivity:Interaction.Behaviors>
+                        </FontIcon>
+
+                        <FontIcon x:Name="SoundButton" MinWidth="30" Margin="15" VerticalAlignment="Center" Glyph="&#xE767;" Foreground="White">
+                            <FontIcon.ContextFlyout>
                                 <Flyout LightDismissOverlayMode="Off">
                                     <Flyout.FlyoutPresenterStyle>
                                         <Style TargetType="FlyoutPresenter">
@@ -216,24 +150,21 @@
                                     </Flyout.FlyoutPresenterStyle>
                                     <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
                                         <StackPanel Orientation="Horizontal">
-                                            <Grid VerticalAlignment="Center" Margin="10,0,30,0" RenderTransformOrigin="0.5,0.5">
-                                                <Grid.RenderTransform>
-                                                    <CompositeTransform ScaleX="1.5" ScaleY="1.5"/>
-                                                </Grid.RenderTransform>
-                                                <Path Fill="White" Data="M18.2,15.3c-0.2,0-0.4-0.1-0.6-0.3c-0.3-0.3-0.3-0.9,0-1.2C19.1,12.3,20,10.2,20,8c0-2.2-0.9-4.3-2.4-5.9c-0.3-0.3-0.3-0.9,0-1.2c0.3-0.3,0.9-0.3,1.2,0c1.9,1.9,2.9,4.4,2.9,7.1c0,2.7-1,5.2-2.9,7.1C18.6,15.2,18.4,15.3,18.2,15.3L18.2,15.3z M15.1,13.7c-0.2,0-0.4-0.1-0.6-0.3c-0.3-0.3-0.3-0.9,0-1.2c2.3-2.3,2.3-6.1,0-8.5c-0.3-0.3-0.3-0.9,0-1.2c0.3-0.3,0.9-0.3,1.2,0C17.2,4,18,5.9,18,8c0,2.1-0.8,4-2.3,5.5C15.6,13.6,15.4,13.7,15.1,13.7L15.1,13.7L15.1,13.7z M12.1,12.1c-0.2,0-0.4-0.1-0.6-0.3c-0.3-0.3-0.3-0.9,0-1.2c1.4-1.4,1.4-3.8,0-5.3c-0.3-0.3-0.3-0.9,0-1.2c0.3-0.3,0.9-0.3,1.2,0c2.1,2.1,2.1,5.6,0,7.7C12.5,12,12.3,12.1,12.1,12.1z"/>
-                                                <Path Fill="White" Data="M9.7,16c-0.1,0-0.3-0.1-0.4-0.2l-4.4-4.4h-2c-0.3,0-0.6-0.3-0.6-0.6V5.1c0-0.3,0.3-0.6,0.6-0.6h2l4.4-4.4C9.5,0,9.7,0,9.9,0c0.2,0.1,0.4,0.3,0.4,0.5v14.9c0,0.2-0.1,0.4-0.4,0.5C9.9,16,9.8,16,9.7,16z"/>
-                                            </Grid>
+                                            <FontIcon VerticalAlignment="Center" Margin="10,0,30,0" Foreground="White" Glyph="&#xE767;"/>
                                             <Slider MinWidth="200" MaxHeight="210" 
                                                     Value="{Binding Volume, Mode=TwoWay}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
                                         </StackPanel>
                                     </Grid>
                                 </Flyout>
-                            </Grid.ContextFlyout>
-                            <Path Fill="White"  Canvas.ZIndex="22"
-                                  Data="M18.2,15.3c-0.2,0-0.4-0.1-0.6-0.3c-0.3-0.3-0.3-0.9,0-1.2C19.1,12.3,20,10.2,20,8c0-2.2-0.9-4.3-2.4-5.9c-0.3-0.3-0.3-0.9,0-1.2c0.3-0.3,0.9-0.3,1.2,0c1.9,1.9,2.9,4.4,2.9,7.1c0,2.7-1,5.2-2.9,7.1C18.6,15.2,18.4,15.3,18.2,15.3L18.2,15.3z M15.1,13.7c-0.2,0-0.4-0.1-0.6-0.3c-0.3-0.3-0.3-0.9,0-1.2c2.3-2.3,2.3-6.1,0-8.5c-0.3-0.3-0.3-0.9,0-1.2c0.3-0.3,0.9-0.3,1.2,0C17.2,4,18,5.9,18,8c0,2.1-0.8,4-2.3,5.5C15.6,13.6,15.4,13.7,15.1,13.7L15.1,13.7L15.1,13.7z M12.1,12.1c-0.2,0-0.4-0.1-0.6-0.3c-0.3-0.3-0.3-0.9,0-1.2c1.4-1.4,1.4-3.8,0-5.3c-0.3-0.3-0.3-0.9,0-1.2c0.3-0.3,0.9-0.3,1.2,0c2.1,2.1,2.1,5.6,0,7.7C12.5,12,12.3,12.1,12.1,12.1z"/>
-                            <Path Fill="White" Canvas.ZIndex="22"
-                                  Data="M9.7,16c-0.1,0-0.3-0.1-0.4-0.2l-4.4-4.4h-2c-0.3,0-0.6-0.3-0.6-0.6V5.1c0-0.3,0.3-0.6,0.6-0.6h2l4.4-4.4C9.5,0,9.7,0,9.9,0c0.2,0.1,0.4,0.3,0.4,0.5v14.9c0,0.2-0.1,0.4-0.4,0.5C9.9,16,9.8,16,9.7,16z"/>
-                        </Grid>
+                            </FontIcon.ContextFlyout>
+
+                            <Interactivity:Interaction.Behaviors>
+                                <Core:EventTriggerBehavior EventName="Tapped">
+                                    <Core:InvokeCommandAction Command="{Binding SoundFontIconTappedCommand}"/>
+                                </Core:EventTriggerBehavior>
+                            </Interactivity:Interaction.Behaviors>
+                        </FontIcon>
+
                     </StackPanel>
 
                 </Grid>
@@ -249,12 +180,7 @@
                                            MaxLines="1" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" MaxWidth="200"/>
                             </StackPanel>
                         </Grid>
-                        <!--<Path Fill="White" Margin="15" VerticalAlignment="Center" Width="15" Height="14"
-                              Data="M5.5,10.7L4.7,9.9C1.9,7.3,0,5.6,0,3.4c0-1.7,1.3-3.1,3-3.1c0.9,0,1.9,0.4,2.5,1.2C6.1,0.8,7,0.3,8,0.3c1.7,0,3,1.3,3,3.1c0,2.1-1.9,3.9-4.7,6.4L5.5,10.7z" RenderTransformOrigin="0.5,0.5">
-                            <Path.RenderTransform>
-                                <CompositeTransform ScaleX="2" ScaleY="2"/>
-                            </Path.RenderTransform>
-                        </Path>-->
+
                     </StackPanel>
                 </Grid>
             </Grid>
