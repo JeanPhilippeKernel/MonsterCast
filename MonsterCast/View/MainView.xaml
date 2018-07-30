@@ -117,7 +117,10 @@
                                  Foreground="White" ManipulationMode="TranslateX" RequiresPointer="WhenEngaged">
                             <Interactivity:Interaction.Behaviors>
                                 <Core:EventTriggerBehavior EventName="ManipulationCompleted">
-                                    <Core:InvokeCommandAction Command="{Binding ThumbManipulationCommand}"/>
+                                    <Core:InvokeCommandAction Command="{Binding ThumbManipulationCompletedCommand}"/>
+                                </Core:EventTriggerBehavior>
+                                <Core:EventTriggerBehavior EventName="ManipulationStarted">
+                                    <Core:InvokeCommandAction Command="{Binding ThumbManipulationStartedCommand}"/>
                                 </Core:EventTriggerBehavior>
                             </Interactivity:Interaction.Behaviors>
 

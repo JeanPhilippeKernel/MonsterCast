@@ -21,7 +21,8 @@ namespace MonsterCast.ViewModel
         #region Fields
         private readonly RelayCommand<NavigationViewSelectionChangedEventArgs> _selectedMenuItemCommand = null;
         private readonly RelayCommand<ItemClickEventArgs> _optionalMenuItemCommand = null;
-        private readonly RelayCommand<ManipulationCompletedRoutedEventArgs> _thumbManipulationCommand = null;
+        private readonly RelayCommand<ManipulationCompletedRoutedEventArgs> _thumbManipulationCompletedCommand = null;
+        private readonly RelayCommand<ManipulationStartedRoutedEventArgs> _thumbManipulationStartedCommand = null;
         private readonly RelayCommand<NavigationViewBackRequestedEventArgs> _backButtonCommand = null;
         private readonly RelayCommand<NavigationEventArgs> _hostedFrameNavigatedCommand = null;
         private readonly RelayCommand<TappedRoutedEventArgs> _soundFontIconTappedCommand = null;
@@ -58,7 +59,8 @@ namespace MonsterCast.ViewModel
         #region Properties
         public RelayCommand<NavigationViewSelectionChangedEventArgs> SelectedMenuItemCommand => _selectedMenuItemCommand;       
         public RelayCommand<ItemClickEventArgs> OptionalMenuItemCommand => _optionalMenuItemCommand;
-        public RelayCommand<ManipulationCompletedRoutedEventArgs> ThumbManipulationCommand => _thumbManipulationCommand;
+        public RelayCommand<ManipulationCompletedRoutedEventArgs> ThumbManipulationCompletedCommand => _thumbManipulationCompletedCommand;
+        public RelayCommand<ManipulationStartedRoutedEventArgs> ThumbManipulationStartedCommand => _thumbManipulationStartedCommand;
         public RelayCommand<NavigationViewBackRequestedEventArgs> BackButtonCommand => _backButtonCommand;
         public RelayCommand<NavigationEventArgs> HostedFrameNavigatedCommand => _hostedFrameNavigatedCommand;
 
@@ -170,7 +172,8 @@ namespace MonsterCast.ViewModel
             
             _selectedMenuItemCommand = new RelayCommand<NavigationViewSelectionChangedEventArgs>(SelectedMenuItemRelayCommand);
             _optionalMenuItemCommand = new RelayCommand<ItemClickEventArgs>(OptionalRelayCommandHandler);
-            _thumbManipulationCommand = new RelayCommand<ManipulationCompletedRoutedEventArgs>(ThumbManipulationRelayCommand);
+            _thumbManipulationCompletedCommand = new RelayCommand<ManipulationCompletedRoutedEventArgs>(ThumbManipulationCompletedRelayCommand);
+            _thumbManipulationStartedCommand = new RelayCommand<ManipulationStartedRoutedEventArgs>(ThumbManipulationStartedRelayCommand);
             _backButtonCommand = new RelayCommand<NavigationViewBackRequestedEventArgs>(BackButtonRelayCommand);
             _hostedFrameNavigatedCommand = new RelayCommand<NavigationEventArgs>(HostedFrameNavigatedRelayCommand);
 
@@ -189,7 +192,6 @@ namespace MonsterCast.ViewModel
             AppConstants.Player.Volume = _volume;
         }
 
-      
         #region Messenger_Method
         private void PlayRequestAction(GenericMessage<Cast> args)
         {
@@ -339,11 +341,22 @@ namespace MonsterCast.ViewModel
             }
         }
 
-        private void ThumbManipulationRelayCommand(ManipulationCompletedRoutedEventArgs args)
+        private void ThumbManipulationStartedRelayCommand(ManipulationStartedRoutedEventArgs args)
+        {
+            args.Handled = true;
+            if (AppConstants.Player.PlaybackSession.PlaybackState == MediaPlaybackState.Paused
+                || AppConstants.Player.PlaybackSession.PlaybackState == MediaPlaybackState.Playing)
+            {
+                AppConstants.Player.PlaybackSession.PositionChanged -= PlaybackSession_PositionChangedAsync;
+            }
+        }
+
+        private void ThumbManipulationCompletedRelayCommand(ManipulationCompletedRoutedEventArgs args)
         {
             args.Handled = true;
             var source = args.OriginalSource as Slider;
-            AppConstants.Player.PlaybackSession.Position = TimeSpan.FromSeconds(source.Value);
+            AppConstants.Player.PlaybackSession.Position = TimeSpan.FromSeconds(source.Value);          
+            AppConstants.Player.PlaybackSession.PositionChanged += PlaybackSession_PositionChangedAsync;
         }
         private void BackButtonRelayCommand(NavigationViewBackRequestedEventArgs args)
         {
