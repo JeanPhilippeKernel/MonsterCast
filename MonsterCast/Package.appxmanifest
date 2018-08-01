@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3" IgnorableNamespaces="uap mp uap3">
-  <Identity Name="55528k3rn3l.4939352695C9B" Publisher="CN=6161442B-157F-4C5F-8352-8C991517B4AB" Version="1.1.1.0" />
+  <Identity Name="55528k3rn3l.4939352695C9B" Publisher="CN=6161442B-157F-4C5F-8352-8C991517B4AB" Version="1.0.3.0" />
   <mp:PhoneIdentity PhoneProductId="f2754f54-b60e-4116-8abe-99b3fb626ed8" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>MonsterCast(beta)</DisplayName>
@@ -15,14 +15,16 @@
   </Resources>
   <Applications>
     <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="MonsterCast.App">
-      <uap:VisualElements DisplayName="MonsterCast(beta)" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="MonsterCast" BackgroundColor="transparent">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png">
+      <uap:VisualElements DisplayName="MonsterCast(beta)" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="MonsterCast" BackgroundColor="black">
+        <uap:LockScreen Notification="badgeAndTileText" BadgeLogo="Assets\BadgeLogo.png" />
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" ShortName="MonsterCast" Square310x310Logo="Assets\LargeTile.png" Square71x71Logo="Assets\SmallTile.png">
           <uap:ShowNameOnTiles>
             <uap:ShowOn Tile="square150x150Logo" />
             <uap:ShowOn Tile="wide310x150Logo" />
+            <uap:ShowOn Tile="square310x310Logo" />
           </uap:ShowNameOnTiles>
         </uap:DefaultTile>
-        <uap:SplashScreen Image="Assets\SplashScreen.png" BackgroundColor="transparent" />
+        <uap:SplashScreen Image="Assets\SplashScreen.png" BackgroundColor="black" />
       </uap:VisualElements>
       <!--<uap:ApplicationContentUriRules>
         <uap:Rule Match="https://player.twitch.tv/?channel=monstercat" Type="include" WindowsRuntimeAccess="all" />
