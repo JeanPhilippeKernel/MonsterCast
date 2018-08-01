@@ -10,15 +10,16 @@
     mc:Ignorable="d"
     DataContext="{Binding LoadingVM, Source={StaticResource ViewModelLocator}}">
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <Image HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-               Stretch="UniformToFill"  Source="ms-appx:///Assets/Backgrounds/splashscreen.jpg">
-            <Interactivity:Interaction.Behaviors>
-                <Core:EventTriggerBehavior EventName="Loaded">
-                    <Core:InvokeCommandAction Command="{Binding MediaAction}"/>
-                </Core:EventTriggerBehavior>
-            </Interactivity:Interaction.Behaviors>
-        </Image>
+    <Grid>
+        <Grid.Background>
+            <ImageBrush Stretch="UniformToFill" ImageSource="ms-appx:///Assets/Backgrounds/SplashScreenn.jpg" ImageOpened="ImageBrush_ImageOpened">
+                <!--<Interactivity:Interaction.Behaviors>
+                    <Core:EventTriggerBehavior EventName="ImageOpened">
+                        <Core:InvokeCommandAction Command="{Binding MediaAction}"/>
+                    </Core:EventTriggerBehavior>
+                </Interactivity:Interaction.Behaviors>-->
+            </ImageBrush>
+        </Grid.Background>
         <!--<MediaElement x:Name="mediaElement" HorizontalAlignment="Stretch" 
                       VerticalAlignment="Stretch" AutoPlay="True"
                       Stretch="UniformToFill" IsLooping="True"

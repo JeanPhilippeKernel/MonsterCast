@@ -33,7 +33,7 @@ namespace MonsterCast.ViewModel
         #endregion
 
         #region Properties
-        public RelayCommand MediaAction { get; set; }
+        //public RelayCommand MediaAction { get; set; }
         public int Min
         {
             get { return _min; }
@@ -61,7 +61,7 @@ namespace MonsterCast.ViewModel
             this.NavigationService = _navigationService;
             this.DialogService = _dialogService;
             _progress = new Progress<int>(ProgressHandler);
-            MediaAction = new RelayCommand(FetchingAllCasts);
+            //MediaAction = new RelayCommand(FetchingAllCasts);
         }
 
         private void ProgressHandler(int value)
@@ -69,7 +69,6 @@ namespace MonsterCast.ViewModel
             CurrentValue = (value > CurrentValue) ? value : CurrentValue;        
         }
 
-        //executed when MediaOpened's event of MediaElement is triggered.. 
         public async void FetchingAllCasts()
         {
             _progress.Report(0);        
@@ -86,13 +85,9 @@ namespace MonsterCast.ViewModel
 
                          return await ConvertToCastObject(dynamicCollection);
                      }, TaskContinuationOptions.OnlyOnRanToCompletion);
-
-
-                   
+                
                     Messenger.Send(new NotificationMessage("podcasts collection has set"));
-                    NavigationService.NavigateTo(ViewModelLocator.MainViewKey);
-
-                    //(sender as MediaElement).Stop();
+                    NavigationService.NavigateTo(ViewModelLocator.MainViewKey);                   
                 }
                 catch (Exception e)
                 {

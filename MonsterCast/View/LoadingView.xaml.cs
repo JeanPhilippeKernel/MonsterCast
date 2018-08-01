@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Practices.ServiceLocation;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,9 +23,16 @@ namespace MonsterCast.View
     /// </summary>
     public sealed partial class LoadingView : Page
     {
+        private ViewModel.LoadingViewModel _loadingVM = null;
         public LoadingView()
         {
             this.InitializeComponent();
+            _loadingVM = ServiceLocator.Current.GetInstance<ViewModel.LoadingViewModel>();
+        }
+
+        private void ImageBrush_ImageOpened(object sender, RoutedEventArgs e)
+        {
+            _loadingVM.FetchingAllCasts();
         }
     }
 }
