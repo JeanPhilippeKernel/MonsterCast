@@ -287,17 +287,20 @@ namespace MonsterCast.ViewModel
 
                 _messenger.Send(new GenericMessage<Cast>(ActiveMedia), "now_playing");
             });
+
+            sender.PlaybackSession.PositionChanged -= PlaybackSession_PositionChangedAsync;
             sender.PlaybackSession.PositionChanged += PlaybackSession_PositionChangedAsync;
         }
 
         private async void PlaybackSession_PositionChangedAsync(MediaPlaybackSession sender, object args)
         {
+            Debug.WriteLine("position : " + sender.Position.ToString(@"hh\:mm\:ss"));
             await DispatcherHelper.RunAsync(() =>
             {
                 PositionValue = sender.Position.TotalSeconds;
                 CurrentMediaStartTime = sender.Position.ToString(@"hh\:mm\:ss");
             });
-            
+               
         }
         #endregion
 
@@ -340,9 +343,10 @@ namespace MonsterCast.ViewModel
                 IsBackButtonVisible = HostedFrame.CanGoBack ? NavigationViewBackButtonVisible.Visible : NavigationViewBackButtonVisible.Collapsed;
             }
         }
-
+                                                                 
         private void ThumbManipulationStartedRelayCommand(ManipulationStartedRoutedEventArgs args)
         {
+            Debug.WriteLine("Manipulation started");
             args.Handled = true;
             if (AppConstants.Player.PlaybackSession.PlaybackState == MediaPlaybackState.Paused
                 || AppConstants.Player.PlaybackSession.PlaybackState == MediaPlaybackState.Playing)
@@ -353,6 +357,7 @@ namespace MonsterCast.ViewModel
 
         private void ThumbManipulationCompletedRelayCommand(ManipulationCompletedRoutedEventArgs args)
         {
+            Debug.WriteLine("Manipulation completed");
             args.Handled = true;
             var source = args.OriginalSource as Slider;
             AppConstants.Player.PlaybackSession.Position = TimeSpan.FromSeconds(source.Value);          

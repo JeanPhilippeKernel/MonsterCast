@@ -1,4 +1,4 @@
-﻿using Microsoft.Practices.ServiceLocation;
+﻿using CommonServiceLocator;
 using MonsterCast.Helper;
 using MonsterCast.Model;
 using MonsterCast.ViewModel;
