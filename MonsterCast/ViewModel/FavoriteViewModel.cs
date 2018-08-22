@@ -46,7 +46,7 @@ namespace MonsterCast.ViewModel
         {           
             var clickedCast = e.ClickedItem as Cast;
             var pageType = Type.GetType("MonsterCast.View.CastDetailView");
-            _messenger.Send(new GenericMessage<Type>(pageType), "nav_request");
+            _messenger.Send(new GenericMessage<Type>(pageType), Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION);
             _messenger.Send(new GenericMessage<Cast>(clickedCast), "fromFavorite");
         }
 

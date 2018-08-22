@@ -34,7 +34,7 @@
             <TextBlock Grid.Column="1" Text="{Binding Name, Mode=OneWay}" FontSize="16" VerticalAlignment="Center" Foreground="White" />
         </Grid>
     </DataTemplate>-->
-    <DataTemplate x:Key="FlipViewItemTemplate">
+    <!--<DataTemplate x:Key="FlipViewItemTemplate">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -81,7 +81,7 @@
                 </Grid>
             </Grid>
         </Grid>
-    </DataTemplate>
+    </DataTemplate>-->
     
     <DataTemplate x:Key="GridViewItemTemplate">
         <Grid Padding="10,0,10,0" Margin="0" MinWidth="232" MinHeight="312">

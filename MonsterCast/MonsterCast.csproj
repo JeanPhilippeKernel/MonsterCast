@@ -170,11 +170,9 @@
     </Compile>
     <Compile Include="Controls\PlayerSlider.cs" />
     <Compile Include="Converter\SliderToolTipConverter.cs" />
-    <Compile Include="Core\SystemEnumeration.cs" />
     <Compile Include="Model\AppConstants.cs" />
     <Compile Include="SQLiteAsync.cs" />
     <Compile Include="Helper\Helpers.cs" />
-    <Compile Include="Helper\XmlHelper.cs" />
     <Compile Include="Model\Cast.cs" />
     <Compile Include="Model\MenuItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -300,6 +298,12 @@
     <SDKReference Include="Microsoft.VCLibs, Version=14.0">
       <Name>Visual C++ 2015 Runtime for Universal Windows Platform Apps</Name>
     </SDKReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MonsterCast.Core\MonsterCast.Core.csproj">
+      <Project>{f9f3f2e5-49a3-4de2-aa70-71b5a3e8c6f7}</Project>
+      <Name>MonsterCast.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

@@ -1,4 +1,5 @@
 ﻿using CommonServiceLocator;
+using GalaSoft.MvvmLight.Messaging;
 using MonsterCast.Helper;
 using MonsterCast.Model;
 using MonsterCast.ViewModel;
@@ -21,19 +22,32 @@ namespace MonsterCast.View
     /// </summary>
     public sealed partial class DefaultView : Page
     {
-        public DefaultViewModel DefaultVM { get; set; }
+        private DefaultViewModel _defaultVM = null;
+        private IMessenger _messenger = null;
+
         
         public DefaultView()
         {
             this.InitializeComponent();
-            Scroller.ViewChanged += Scroller_ViewChanged;
-           
-            DefaultVM = ServiceLocator.Current.GetInstance<DefaultViewModel>();                      
+           Scroller.ViewChanged += Scroller_ViewChanged;
+
+            _defaultVM = ServiceLocator.Current.GetInstance<DefaultViewModel>();
+            _messenger = ServiceLocator.Current.GetInstance<IMessenger>();
+
+            //var d = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "ViewChanged" };
+            //var action = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = _defaultVM.ScrollerViewChangedCommand };
+            //d.Actions.Add(action);
+            //d.Attach(Scroller);
+
+            _defaultVM.ScrollerView = Scroller;
+            _defaultVM.ContentRoot = ContentRoot;
+
+            _messenger.Send<NotificationMessage, DefaultViewModel>(new NotificationMessage(Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT));
         }
 
         private void Scroller_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
-        {            
-            if(ContentRoot.Children.Count > 0)
+        {
+            if (ContentRoot.Children.Count > 0)
             {
                 if (Scroller.VerticalOffset >= Scroller.ScrollableHeight)
                 {
@@ -44,95 +58,22 @@ namespace MonsterCast.View
                     if (element != null)
                         element.Visibility = Visibility.Visible;
                 }
-                
+
             }
         }
 
-        public void GenerateViewContent()
-        {
-            if (ContentRoot.Children.Count == 0)
-            {
-                bool _withBg = true;
-                var _podcastCollection = DefaultVM.PodcastCollection;
-                ContentRoot.Children.Add(CreateFlipViewChild(DefaultVM.NextCurrentCollection));
-                var splitedCollection = Helpers.SplitCollection(ref _podcastCollection, 8);
-
-                IEnumerable<Cast> collection = null;
-
-                for (int i = 0; i < splitedCollection.Count(); i++)
-                {
-                    collection = splitedCollection.ElementAt(i);
-                    Helpers.FetchImageParallel(ref collection);
-                    if ((i == 0) || (i == 1))
-                    {                       
-                        ContentRoot.Children.Add(CreateGridChild(collection, _withBg));
-                        _withBg = _withBg == true ? false : true;
-                    }
-
-                    else
-                    {                       
-                        ContentRoot.Children.Add(CreateGridChild(collection, _withBg, Visibility.Collapsed));
-                        _withBg = _withBg == true ? false : true;
-                    }
-                }
-                ContentRoot.UpdateLayout();
-            }
-            
-        }
-
-        private UIElement CreateGridChild<T>(T datas, bool withBackground = true, Visibility visibly = Visibility.Visible)
-        {
-            Grid _grid = new Grid
-            {
-                MinHeight = 740,
-                VerticalAlignment = VerticalAlignment.Stretch,
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                Visibility = visibly
-            };
-
-            GridView _gridView = new GridView
-            {
-                Foreground = new SolidColorBrush(Colors.Transparent),
-                IsItemClickEnabled = true,
-                SelectionMode = ListViewSelectionMode.None,
-            };
-
-            _gridView.ItemClick += DefaultVM.GridView_ItemClick;
-
-            _gridView.ItemsPanel = Application.Current.Resources["GridViewItemsPanelTemplate"] as ItemsPanelTemplate;
-
-            if (withBackground)
-            {
-                _gridView.ItemTemplate = Application.Current.Resources["GridViewItemTemplate"] as DataTemplate;
-                _gridView.Background = new ImageBrush()
-                {
-                    ImageSource = new BitmapImage(new Uri("ms-appx:///Assets/Backgrounds/boxbg.jpg", UriKind.RelativeOrAbsolute))
-                };
-            }
-            else
-            {
-                _gridView.ItemTemplate = Application.Current.Resources["GridViewItemTemplateBlack"] as DataTemplate;
-                _gridView.Background = new SolidColorBrush(Colors.White);
-            }
-
-            _gridView.ItemsSource = datas;
-
-            _grid.Children.Add(_gridView);
-            return _grid;
-        }
-
-        private UIElement CreateFlipViewChild<T>(T datas)
-        {
-            FlipView _flipView = new FlipView { HorizontalAlignment = HorizontalAlignment.Stretch };
-            _flipView.ItemTemplate = Application.Current.Resources["FlipViewItemTemplate"] as DataTemplate;
-            _flipView.ItemsSource = datas;
-            _flipView.SelectedIndex = 1;
-            return _flipView;
-        }
+        //private UIElement CreateFlipViewChild<T>(T datas)
+        //{
+        //    FlipView _flipView = new FlipView { HorizontalAlignment = HorizontalAlignment.Stretch };
+        //    _flipView.ItemTemplate = Application.Current.Resources["FlipViewItemTemplate"] as DataTemplate;
+        //    _flipView.ItemsSource = datas;
+        //    _flipView.SelectedIndex = 1;
+        //    return _flipView;
+        //}
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            GenerateViewContent();
+           
             base.OnNavigatedTo(e);         
         }
     }

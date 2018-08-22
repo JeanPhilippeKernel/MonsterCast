@@ -52,7 +52,7 @@ namespace MonsterCast.ViewModel
 
         private void PlayCommandHandler()
         {
-            _messenger.Send(new GenericMessage<Cast>(ActiveCast), "play_request");
+            _messenger.Send(new GenericMessage<Cast>(ActiveCast), Core.Enumeration.Message.REQUEST_MEDIAPLAYER_PLAY_SONG);
         }
 
         private void MessageDefaultAction(GenericMessage<Cast> args)

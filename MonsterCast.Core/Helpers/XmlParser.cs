@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace MonsterCast_App.Helpers
+namespace MonsterCast.Core.Helpers
 {
-    public static class XmlHelper
+    public static class XmlParser
     {
         private static List<dynamic> _collection =  new List<dynamic>();
         private static ExpandoObject _currentItem = new ExpandoObject();

@@ -3,7 +3,6 @@ using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
 using GalaSoft.MvvmLight.Views;
 using MonsterCast.Model;
-using MonsterCast_App.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -72,17 +71,25 @@ namespace MonsterCast.ViewModel
                 try
                 {
                     var _httpTask = _httpClient.GetStreamAsync(podcastAddress);
-                    AppConstants.PodcastCollection = await await _httpTask.ContinueWith(async (t) =>
-                     {
-                         _progress.Report(5);
-                         var dynamicCollection = await XmlHelper.Parse(t.Result);
-                         _progress.Report(5);
+                    var _parsingTask = await _httpTask.ContinueWith(async t =>
+                    {
+                        _progress.Report(5);
+                        var _stream = await t.ConfigureAwait(false);
+                        var dynamicCollection = await Core.Helpers.XmlParser.Parse(_stream);
+                        _progress.Report(5);
 
-                         return await ConvertToCastObject(dynamicCollection);
-                     }, TaskContinuationOptions.OnlyOnRanToCompletion);
-                
-                    Messenger.Send(new NotificationMessage("podcasts collection has set"));
-                    NavigationService.NavigateTo(ViewModelLocator.MainViewKey);                   
+                        AppConstants.PodcastCollection = await ConvertToCastObject(dynamicCollection);
+
+                    }, TaskContinuationOptions.OnlyOnRanToCompletion);
+                    await _parsingTask.ContinueWith(async t =>
+                    {
+                        await DispatcherHelper.RunAsync(() =>
+                        {
+                            Messenger.Send(new NotificationMessage(Core.Enumeration.Message.NOTIFICATION_PODCAST_HAS_BEEN_SET));                          
+                            NavigationService.NavigateTo(ViewModelLocator.MainViewKey);
+                        });
+
+                    }, TaskContinuationOptions.OnlyOnRanToCompletion);                                 
                 }
                 catch (Exception e)
                 {
@@ -118,30 +125,49 @@ namespace MonsterCast.ViewModel
             {
                 await DispatcherHelper.RunAsync(() =>
                 {
-                    foreach (var item in _collection)
+                    for (int i = 0; i < _collectionCount; i++)
                     {
                         var newCast = new Cast
                         {
                             Index = $"#{assignedIndex++}",
-                            Title = item.title,
-                            Subtitle = item.subtitle,
-                            Summary = item.summary,
-                            Address = item.image["href"],
-                            Song = item.enclosure["url"]
+                            Title = _collection.ElementAt(i).title,
+                            Subtitle = _collection.ElementAt(i).subtitle,
+                            Summary = _collection.ElementAt(i).summary,
+                            Address = _collection.ElementAt(i).image["href"],
+                            Song = _collection.ElementAt(i).enclosure["url"]
                         };
-                     
                         _castCollection.Add(newCast);
-
-                        //compute the percentage... and update the progress bar value
                         if ((int)(((double)_progressCount / (double)_collectionCount) * 100) > percent)
                         {
                             percent = (int)(((double)_progressCount / (double)_collectionCount) * 100);
                             _progress.Report(percent);
                         }
                         _progressCount++;
-                    }                    
+                    }
+                    //foreach (var item in _collection)
+                    //{
+                    //    var newCast = new Cast
+                    //    {
+                    //        Index = $"#{assignedIndex++}",
+                    //        Title = item.title,
+                    //        Subtitle = item.subtitle,
+                    //        Summary = item.summary,
+                    //        Address = item.image["href"],
+                    //        Song = item.enclosure["url"]
+                    //    };
+                     
+                    //    _castCollection.Add(newCast);
+
+                    //    //compute the percentage... and update the progress bar value
+                    //    if ((int)(((double)_progressCount / (double)_collectionCount) * 100) > percent)
+                    //    {
+                    //        percent = (int)(((double)_progressCount / (double)_collectionCount) * 100);
+                    //        _progress.Report(percent);
+                    //    }
+                    //    _progressCount++;
+                    //}                    
                 });
-                return _castCollection.AsEnumerable();
+                return _castCollection;
             });
         }
     }

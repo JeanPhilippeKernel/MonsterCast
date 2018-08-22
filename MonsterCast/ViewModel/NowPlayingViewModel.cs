@@ -40,8 +40,8 @@ namespace MonsterCast.ViewModel
         public NowPlayingViewModel(IMessenger messenger)
         {
             _messenger = messenger;
-            _messenger.Register<GenericMessage<Cast>>(this, "now_playing", NowPlayingAction);
-            _messenger.Register<NotificationMessage>(this, "end_playing", EndPlayingAction);
+            _messenger.Register<GenericMessage<Cast>>(this, Core.Enumeration.Message.MEDIAPLAYER_PLAY_NOW_PLAYING, NowPlayingAction);
+            _messenger.Register<NotificationMessage>(this, Core.Enumeration.Message.MEDIAPLAYER_PLAY_END_PLAYING, EndPlayingAction);
         }
 
         private void EndPlayingAction(NotificationMessage obj)

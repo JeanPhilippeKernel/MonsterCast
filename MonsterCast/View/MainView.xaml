@@ -7,7 +7,8 @@
     xmlns:Interactivity="using:Microsoft.Xaml.Interactivity"
     xmlns:Core="using:Microsoft.Xaml.Interactions.Core"
     mc:Ignorable="d"
-    DataContext="{Binding MainVM, Source={StaticResource ViewModelLocator}}">
+    DataContext="{Binding MainVM, Source={StaticResource ViewModelLocator}}"
+    Loaded="Page_Loaded">
 
     <Grid Background="Black" Opacity="0.95">
         <Grid x:Name="MainCanvas" HorizontalAlignment="Stretch" 
@@ -59,9 +60,9 @@
                     </Frame>
 
                     <Interactivity:Interaction.Behaviors>
-                    
-                        <Core:EventTriggerBehavior EventName="SelectionChanged">
-                            <Core:InvokeCommandAction Command="{Binding SelectedMenuItemCommand}"/>
+
+                        <Core:EventTriggerBehavior EventName="ItemInvoked">
+                            <Core:InvokeCommandAction Command="{Binding InvokedMenuItemCommand}"/>
                         </Core:EventTriggerBehavior>
                         <Core:EventTriggerBehavior EventName="BackRequested">
                             <Core:InvokeCommandAction Command="{Binding BackButtonCommand}"/>

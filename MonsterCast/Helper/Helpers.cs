@@ -166,12 +166,13 @@ namespace MonsterCast.Helper
 
         public static void FetchImageParallel(ref IEnumerable<Cast> collection)
         {
-            Parallel.ForEach(collection, async (item) =>
+            var result  =  Parallel.ForEach(collection, async (item) =>
             {
                 var path = await FetchImageAsync(item.Address, item.Song);
                 if (!string.IsNullOrEmpty(path))
                     item.Address = path;
             });
+            
         }
     }                                                                   
 }

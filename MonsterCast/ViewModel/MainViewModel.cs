@@ -11,15 +11,15 @@ using Windows.Media.Playback;
 using Windows.UI.Xaml.Controls;
 using System.Diagnostics;
 using Windows.UI.Xaml.Input;
-using MonsterCast.Core;
 using Windows.UI.Xaml.Navigation;
+using System.Linq;
 
 namespace MonsterCast.ViewModel
 {
     public class MainViewModel : ViewModelBase
     {
         #region Fields
-        private readonly RelayCommand<NavigationViewSelectionChangedEventArgs> _selectedMenuItemCommand = null;
+        private readonly RelayCommand<NavigationViewItemInvokedEventArgs> _invokedMenuItemCommand = null;
         private readonly RelayCommand<ItemClickEventArgs> _optionalMenuItemCommand = null;
         private readonly RelayCommand<ManipulationCompletedRoutedEventArgs> _thumbManipulationCompletedCommand = null;
         private readonly RelayCommand<ManipulationStartedRoutedEventArgs> _thumbManipulationStartedCommand = null;
@@ -27,15 +27,7 @@ namespace MonsterCast.ViewModel
         private readonly RelayCommand<NavigationEventArgs> _hostedFrameNavigatedCommand = null;
         private readonly RelayCommand<TappedRoutedEventArgs> _soundFontIconTappedCommand = null;
         private readonly RelayCommand<TappedRoutedEventArgs> _playFontIconTappedCommand = null;
-        private readonly RelayCommand<TappedRoutedEventArgs> _loopFontIconTappedCommand = null;
-        private Dictionary<MenuItemEnum, MenuItem> _internalPageTypeTag => new Dictionary<MenuItemEnum, MenuItem>
-            {
-                {MenuItemEnum.ALL_PODCAST, new MenuItem{ PageType = typeof(DefaultView)} } ,
-                {MenuItemEnum.NOW_PLAYING, new MenuItem{ PageType = typeof(NowPlayingView)} } ,
-                {MenuItemEnum.YOUR_FAVORITES, new MenuItem{ PageType = typeof(FavoriteCastView)} } ,
-                {MenuItemEnum.LIVE, new MenuItem{ PageType = typeof(LiveView)} },
-                {MenuItemEnum.ABOUT, new MenuItem{ PageType = typeof(AboutView)} }
-        };
+        private readonly RelayCommand<TappedRoutedEventArgs> _loopFontIconTappedCommand = null;      
         private IMessenger _messenger = null;
 
         private Cast _activeMedia = null;
@@ -48,6 +40,7 @@ namespace MonsterCast.ViewModel
         private bool _isBufferingProgress = false;
 
         private NavigationView _mainNavigationView = null;
+        private NavigationViewItem _currentNavigationViewItem = null;
         private Frame _hostedFrame = null;
         private NavigationViewBackButtonVisible _isBackButtonVisible = NavigationViewBackButtonVisible.Collapsed;
 
@@ -57,7 +50,7 @@ namespace MonsterCast.ViewModel
         #endregion
 
         #region Properties
-        public RelayCommand<NavigationViewSelectionChangedEventArgs> SelectedMenuItemCommand => _selectedMenuItemCommand;       
+        public RelayCommand<NavigationViewItemInvokedEventArgs> InvokedMenuItemCommand => _invokedMenuItemCommand;       
         public RelayCommand<ItemClickEventArgs> OptionalMenuItemCommand => _optionalMenuItemCommand;
         public RelayCommand<ManipulationCompletedRoutedEventArgs> ThumbManipulationCompletedCommand => _thumbManipulationCompletedCommand;
         public RelayCommand<ManipulationStartedRoutedEventArgs> ThumbManipulationStartedCommand => _thumbManipulationStartedCommand;
@@ -71,15 +64,15 @@ namespace MonsterCast.ViewModel
         public List<NavigationViewItem> MenuItemCollection => new List<NavigationViewItem>
         {
 
-            new NavigationViewItem { Icon = new FontIcon() { Glyph= "\uE93C", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") } , Content = "All podcasts", Tag = MenuItemEnum.ALL_PODCAST},
-            new NavigationViewItem { Icon = new FontIcon(){ Glyph= "\uE7F6", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") }, Content = "Now Playing", Tag = MenuItemEnum.NOW_PLAYING},
-            new NavigationViewItem { Icon = new FontIcon(){ Glyph= "\uE728", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") } , Content ="Your favorites", Tag= MenuItemEnum.YOUR_FAVORITES},
+            new NavigationViewItem { Icon = new FontIcon() { Glyph= "\uE93C", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") } , Content = "All podcasts", Tag = typeof(DefaultView) },
+            new NavigationViewItem { Icon = new FontIcon() { Glyph= "\uE7F6", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") }, Content = "Now Playing", Tag = typeof(NowPlayingView)},
+            new NavigationViewItem { Icon = new FontIcon() { Glyph= "\uE728", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") } , Content ="Your favorites", Tag = typeof(FavoriteCastView)},
             //new MenuItem {Icon = "ms-appx:///Assets/Menu/live.png", Name ="Live", PageType = typeof(LiveView) },            
         };
 
         public List<NavigationViewItem> OptionalItemCollection => new List<NavigationViewItem>
         {
-            new NavigationViewItem { Icon = new FontIcon(){ Glyph= "\uE946", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") } , Content ="About", Tag=MenuItemEnum.ABOUT}
+            new NavigationViewItem { Icon = new FontIcon(){ Glyph= "\uE946", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") } , Content ="About", Tag= typeof(AboutView)}
         };
 
         public Cast ActiveMedia
@@ -167,10 +160,11 @@ namespace MonsterCast.ViewModel
         public MainViewModel(IMessenger messenger)
         {            
             _messenger = messenger;
-            _messenger.Register<GenericMessage<Type>>(this, "nav_request", NavRequestAction);
-            _messenger.Register<GenericMessage<Cast>>(this, "play_request", PlayRequestAction);
+            _messenger.Register<NotificationMessage<Type>>(this, ViewBuiltNotificationAction);
+            _messenger.Register<GenericMessage<Type>>(this, Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION, NavigationViewRequestAction);
+            _messenger.Register<GenericMessage<Cast>>(this, Core.Enumeration.Message.REQUEST_MEDIAPLAYER_PLAY_SONG, PlayRequestAction);
             
-            _selectedMenuItemCommand = new RelayCommand<NavigationViewSelectionChangedEventArgs>(SelectedMenuItemRelayCommand);
+            _invokedMenuItemCommand = new RelayCommand<NavigationViewItemInvokedEventArgs>(InvokedMenuItemRelayCommand);
             _optionalMenuItemCommand = new RelayCommand<ItemClickEventArgs>(OptionalRelayCommandHandler);
             _thumbManipulationCompletedCommand = new RelayCommand<ManipulationCompletedRoutedEventArgs>(ThumbManipulationCompletedRelayCommand);
             _thumbManipulationStartedCommand = new RelayCommand<ManipulationStartedRoutedEventArgs>(ThumbManipulationStartedRelayCommand);
@@ -189,10 +183,24 @@ namespace MonsterCast.ViewModel
             AppConstants.Player.SourceChanged += Player_SourceChangedAsync;
             AppConstants.Player.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChangedAsync;
             AppConstants.Player.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChangedAsync_2;
-            AppConstants.Player.Volume = _volume;
+            AppConstants.Player.Volume = _volume;           
         }
 
+
         #region Messenger_Method
+        private void ViewBuiltNotificationAction(NotificationMessage<Type> args)
+        {
+            if(args.Notification == Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT)
+            {
+                var _navigationViewItem = ((IList<NavigationViewItem>)MainNavigationView.MenuItemsSource).Single(e => (Type)e.Tag == args.Content);
+                _navigationViewItem.IsSelected = true;
+
+                _currentNavigationViewItem = _navigationViewItem;
+                HostedFrame.Navigate(args.Content);
+            }
+           
+        }
+
         private void PlayRequestAction(GenericMessage<Cast> args)
         {
             ActiveMedia = args.Content;
@@ -200,9 +208,9 @@ namespace MonsterCast.ViewModel
             AppConstants.Player.Play();
         }
 
-        private void NavRequestAction(GenericMessage<Type> arg)
+        private void NavigationViewRequestAction(GenericMessage<Type> arg)
         {
-            Messenger.Default.Send(arg.Content);
+            HostedFrame.Navigate(arg.Content);          
         }
         #endregion
 
@@ -273,7 +281,7 @@ namespace MonsterCast.ViewModel
                 CurrentMediaEndTime = "00:00:00";
                 CurrentMediaStartTime = "00:00:00";
 
-                _messenger.Send(new NotificationMessage("media ended"), "end_playing");
+                _messenger.Send(new NotificationMessage("media ended"), Core.Enumeration.Message.MEDIAPLAYER_PLAY_END_PLAYING);
             });
         }
 
@@ -285,9 +293,9 @@ namespace MonsterCast.ViewModel
                 PositionMax = sender.PlaybackSession.NaturalDuration.TotalSeconds;
                 CurrentMediaEndTime = sender.PlaybackSession.NaturalDuration.ToString(@"hh\:mm\:ss");
 
-                _messenger.Send(new GenericMessage<Cast>(ActiveMedia), "now_playing");
+                _messenger.Send(new GenericMessage<Cast>(ActiveMedia), Core.Enumeration.Message.MEDIAPLAYER_PLAY_NOW_PLAYING);
             });
-
+                                           
             sender.PlaybackSession.PositionChanged -= PlaybackSession_PositionChangedAsync;
             sender.PlaybackSession.PositionChanged += PlaybackSession_PositionChangedAsync;
         }
@@ -368,11 +376,18 @@ namespace MonsterCast.ViewModel
             HostedFrame.GoBack();
         }
 
-        private void SelectedMenuItemRelayCommand(NavigationViewSelectionChangedEventArgs args)
-        {
-            var navigationViewItem = args.SelectedItem as NavigationViewItem;
-            var clickedItem = _internalPageTypeTag[(MenuItemEnum)navigationViewItem.Tag];
-            Messenger.Default.Send(clickedItem);
+        private void InvokedMenuItemRelayCommand(NavigationViewItemInvokedEventArgs args)
+        {            
+            if(_currentNavigationViewItem != null 
+                && (string)_currentNavigationViewItem.Content == (string)args.InvokedItem)
+                return;
+
+            var navigationViewItem = MenuItemCollection.Single(e => (string)e.Content == (string)args.InvokedItem);
+            var pageType = navigationViewItem.Tag as Type;
+            _messenger.Send(new GenericMessage<Type>(pageType), Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION);
+
+            _currentNavigationViewItem = navigationViewItem;
+
 
             //var navItem = obj.SelectedItem as UIElementCollection;
             //var d = Windows.UI.Xaml.Media.VisualTreeHelper.GetChild(navItem, 0);
@@ -382,10 +397,22 @@ namespace MonsterCast.ViewModel
 
         private void OptionalRelayCommandHandler(ItemClickEventArgs args)
         {
-            var navigationViewItem = OptionalItemCollection.Find(e => (string)e.Content == (string)args.ClickedItem);
+            if (_currentNavigationViewItem != null
+                && (string)_currentNavigationViewItem.Content == (string)args.ClickedItem)
+                return;
 
-            var clickedItem = _internalPageTypeTag[(MenuItemEnum)navigationViewItem.Tag];
-            Messenger.Default.Send(clickedItem);
+           //unselect all items in menuItemCollection
+           var selectedMenuItem = ((IList<NavigationViewItem>)MainNavigationView.MenuItemsSource).Single(e => e.IsSelected);
+            selectedMenuItem.IsSelected = false;
+
+
+            var paneFooterCollection = ((NavigationViewList)MainNavigationView.PaneFooter).ItemsSource as IList<NavigationViewItem>;
+            var navigationViewItem = paneFooterCollection.Single(e => (string)e.Content == (string)args.ClickedItem);
+            navigationViewItem.IsSelected = true;
+            var pageType = navigationViewItem.Tag as Type;
+            _messenger.Send(new GenericMessage<Type>(pageType), Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION);
+
+            _currentNavigationViewItem = navigationViewItem;
         }
         #endregion
 
