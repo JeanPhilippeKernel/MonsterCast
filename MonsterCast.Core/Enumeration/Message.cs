@@ -15,11 +15,13 @@ namespace MonsterCast.Core.Enumeration
         public const string REQUEST_FAVORITE_ADD = "request:favorite:add";
         public const string REQUEST_FAVORITE_REMOVE = "request:favorite:remove";
         public const string REQUEST_MEDIAPLAYER_PLAY_SONG = "request:mediaplayer:play_song";
+        public const string REQUEST_MEDIAPLAYER_PAUSE_SONG = "request:mediaplayer:pause_song";
 
         public const string FAVORITE_ADDED = "favorite:added";
         public const string FAVORITE_REMOVED = "favorite:removed";
 
         public const string MEDIAPLAYER_PLAY_NOW_PLAYING = "mediaplayer:play:now_playing";
+        public const string MEDIAPLAYER_PLAY_PAUSING = "mediaplayer:play:pausing";
         public const string MEDIAPLAYER_PLAY_END_PLAYING = "mediaplayer:play:end_playing";
         
     }

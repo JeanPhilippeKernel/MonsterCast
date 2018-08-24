@@ -167,7 +167,7 @@
                     </StackPanel>
 
                 </Grid>
-                <Grid HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0, 0, 70,0">
+                <Button HorizontalAlignment="Right" Background="Transparent" BorderBrush="Transparent" Foreground="White" Padding="0" VerticalAlignment="Center" Margin="0, 0, 0,0">
                     <StackPanel Orientation="Horizontal" MaxHeight="66">
                         <Image MinWidth="66" MaxWidth="66" MinHeight="66" MaxHeight="66" Stretch="UniformToFill" 
                                Source="{Binding ActiveMedia.Address}"/>
@@ -179,9 +179,8 @@
                                            MaxLines="1" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" MaxWidth="200"/>
                             </StackPanel>
                         </Grid>
-
                     </StackPanel>
-                </Grid>
+                </Button>
             </Grid>
         </Grid>
     </Grid>

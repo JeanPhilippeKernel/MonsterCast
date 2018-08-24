@@ -1,14 +1,17 @@
 ﻿using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
+using GalaSoft.MvvmLight.Threading;
 using MonsterCast.Helper;
 using MonsterCast.Model;
+using MonsterCast.View;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 
@@ -17,8 +20,10 @@ namespace MonsterCast.ViewModel
     public class DefaultViewModel : ViewModelBase
     {
         #region Fields
-        private readonly RelayCommand<ScrollViewerViewChangedEventArgs> _scrollerViewChangedCommand = null;
+        private readonly RelayCommand<RangeBaseValueChangedEventArgs> _scrollerBarValueChangedCommand = null;
         private readonly RelayCommand<ItemClickEventArgs> _castItemClickCommand = null;
+        private readonly RelayCommand _playCommand = null;
+        private readonly RelayCommand _loveCommand = null;
         //private IEnumerable<Cast> _nextCurrentCollection = null;
         private IEnumerable<Cast> _podcastCollection = null;
         private IEnumerable<IList<Cast>> _splitedCollection = null;
@@ -28,13 +33,23 @@ namespace MonsterCast.ViewModel
 
         private ScrollViewer _scrollerView = null;
         private StackPanel _contentRoot = null;
+        private ScrollBar _scrollerBar = null;
+
+        private FontIcon _playFontIcon = null;
+        private FontIcon _loveFontIcon = null;
+
+        private TextBlock _playButtonTitle = null;
+        private TextBlock _loveButtonTitle = null;
+        
 
         private bool _isLoading = false;
         #endregion
 
         #region Properties
-        public RelayCommand<ScrollViewerViewChangedEventArgs> ScrollerViewChangedCommand => _scrollerViewChangedCommand;
+        public RelayCommand<RangeBaseValueChangedEventArgs> ScrollerBarValueChangedCommand => _scrollerBarValueChangedCommand;
         public RelayCommand<ItemClickEventArgs> CastItemClickCommand => _castItemClickCommand;
+        public RelayCommand PlayCommand => _playCommand;
+        public RelayCommand LoveCommand => _loveCommand;
         //public IEnumerable<Cast> NextCurrentCollection
         //{
         //    get { return _nextCurrentCollection; }
@@ -70,6 +85,36 @@ namespace MonsterCast.ViewModel
             set { Set(ref _contentRoot, value); }
         }
 
+        public ScrollBar ScrollerBar
+        {
+            get { return _scrollerBar; }
+            set { Set(ref _scrollerBar, value); }
+        }
+
+        public FontIcon PlayFontIcon
+        {
+            get { return _playFontIcon; }
+            set { Set(ref _playFontIcon, value); }
+        }
+
+        public FontIcon LoveFontIcon
+        {
+            get { return _loveFontIcon; }
+            set { Set(ref _loveFontIcon, value); }
+        }
+
+        public TextBlock PlayButtonTitle
+        {
+            get { return _playButtonTitle; }
+            set { Set(ref _playButtonTitle, value); }
+        }
+
+        public TextBlock LoveButtonTitle
+        {
+            get { return _loveButtonTitle; }
+            set { Set(ref _loveButtonTitle, value); }
+        }
+
         public bool IsLoading
         {
             get { return _isLoading; }
@@ -82,12 +127,13 @@ namespace MonsterCast.ViewModel
             messenger.Register<NotificationMessage>(this, MessengerAction);
             messenger.Register<NotificationMessage>(this, ViewBuiltNotificationAction);
 
-            _scrollerViewChangedCommand = new RelayCommand<ScrollViewerViewChangedEventArgs>(ScrollerViewChangedAction);
+            _scrollerBarValueChangedCommand = new RelayCommand<RangeBaseValueChangedEventArgs>(ScrollerBarValueChangedAction);
             _castItemClickCommand = new RelayCommand<ItemClickEventArgs>(CastItemClickAction);
+            _playCommand = new RelayCommand(PlayRelayCommand);
+            _loveCommand = new RelayCommand(LoveRelayCommand);
         }
 
-        
-
+       
 
         #region Messenger_Method
 
@@ -95,10 +141,7 @@ namespace MonsterCast.ViewModel
         {
             if(args.Notification == Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT)
             {
-                //var d = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "ViewChanged" };
-                //var action = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = ScrollerViewChangedCommand };
-                //d.Actions.Add(action);
-                //d.Attach(ScrollerView);
+                //Todo: Check if the current Cast is love it
 
                 if (ContentRoot.Children.Count == 0)
                 {
@@ -148,30 +191,74 @@ namespace MonsterCast.ViewModel
         #endregion
 
         #region RelayCommand_Method
+
+        private async void LoveRelayCommand()
+        {
+            await DispatcherHelper.RunAsync(() =>
+            {
+                var _currentBrush = (SolidColorBrush)LoveFontIcon.Foreground;
+                if (_currentBrush.Color == Colors.White)
+                {
+                    LoveFontIcon.Glyph = "\uEB52";
+                    LoveFontIcon.Foreground = new SolidColorBrush(Colors.Orange);
+                    LoveButtonTitle.Text = "You love";
+                }
+                else
+                {
+                    LoveFontIcon.Glyph = "\uEB51";
+                    LoveFontIcon.Foreground = new SolidColorBrush(Colors.White);
+                    LoveButtonTitle.Text = "Love it";
+                }
+            });
+        }
+
+        private async void PlayRelayCommand()
+        {
+            if (PlayFontIcon.Glyph == "\uE768")
+            {
+                _messenger.Send(new GenericMessage<Cast>(_currentCast), Core.Enumeration.Message.REQUEST_MEDIAPLAYER_PLAY_SONG);
+                await DispatcherHelper.RunAsync(() =>
+                {
+                    PlayFontIcon.Glyph = "\uE769";
+                    PlayButtonTitle.Text = "Pause";
+                });
+            }
+            else
+            {
+                _messenger.Send(new GenericMessage<Cast>(_currentCast), Core.Enumeration.Message.REQUEST_MEDIAPLAYER_PAUSE_SONG);
+                await DispatcherHelper.RunAsync(() =>
+                {
+                    PlayFontIcon.Glyph = "\uE768";
+                    PlayButtonTitle.Text = "Play";
+                });
+            }
+
+        }
+
         private void CastItemClickAction(ItemClickEventArgs e)
         {
             var clickedCast = e.ClickedItem as Cast;
-            var pageType = Type.GetType("MonsterCast.View.CastDetailView");
+            var pageType = typeof(CastDetailView);
             _messenger.Send(new GenericMessage<Type>(pageType), Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION);
 
             _messenger.Send(new GenericMessage<Cast>(clickedCast), "fromDefault");
         }
 
-        private void ScrollerViewChangedAction(ScrollViewerViewChangedEventArgs obj)
+        private void ScrollerBarValueChangedAction(RangeBaseValueChangedEventArgs args)
         {
-            //if (ContentRoot.Children.Count > 0)
-            //{
-            //    if (ScrollerView.VerticalOffset >= ScrollerView.ScrollableHeight)
-            //    {
-            //        var element = ContentRoot.Children
-            //        .Where(item => item.Visibility == Visibility.Collapsed)
-            //        .FirstOrDefault();
+            if (ContentRoot.Children.Count > 0)
+            {
+                if (/*ScrollerView.VerticalOffset*/ args.NewValue >= ScrollerView.ScrollableHeight)
+                {
+                    var element = ContentRoot.Children
+                    .Where(item => item.Visibility == Visibility.Collapsed)
+                    .FirstOrDefault();
 
-            //        if (element != null)
-            //            element.Visibility = Visibility.Visible;
-            //    }
+                    if (element != null)
+                        element.Visibility = Visibility.Visible;
+                }
 
-            //}
+            }
         }
         #endregion
 

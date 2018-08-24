@@ -163,6 +163,7 @@ namespace MonsterCast.ViewModel
             _messenger.Register<NotificationMessage<Type>>(this, ViewBuiltNotificationAction);
             _messenger.Register<GenericMessage<Type>>(this, Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION, NavigationViewRequestAction);
             _messenger.Register<GenericMessage<Cast>>(this, Core.Enumeration.Message.REQUEST_MEDIAPLAYER_PLAY_SONG, PlayRequestAction);
+            _messenger.Register<GenericMessage<Cast>>(this, Core.Enumeration.Message.REQUEST_MEDIAPLAYER_PAUSE_SONG, PauseRequestAction);
             
             _invokedMenuItemCommand = new RelayCommand<NavigationViewItemInvokedEventArgs>(InvokedMenuItemRelayCommand);
             _optionalMenuItemCommand = new RelayCommand<ItemClickEventArgs>(OptionalRelayCommandHandler);
@@ -186,7 +187,7 @@ namespace MonsterCast.ViewModel
             AppConstants.Player.Volume = _volume;           
         }
 
-
+        
         #region Messenger_Method
         private void ViewBuiltNotificationAction(NotificationMessage<Type> args)
         {
@@ -206,6 +207,12 @@ namespace MonsterCast.ViewModel
             ActiveMedia = args.Content;
             AppConstants.Player.Source = MediaSource.CreateFromUri(new Uri(args.Content.Song, UriKind.Absolute));
             AppConstants.Player.Play();
+        }
+
+        private void PauseRequestAction(GenericMessage<Cast> args)
+        {
+            if (AppConstants.Player.PlaybackSession.CanPause)
+                AppConstants.Player.Pause();
         }
 
         private void NavigationViewRequestAction(GenericMessage<Type> arg)

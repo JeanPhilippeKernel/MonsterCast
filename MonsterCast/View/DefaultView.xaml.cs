@@ -9,6 +9,7 @@ using System.Linq;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
@@ -23,44 +24,44 @@ namespace MonsterCast.View
     public sealed partial class DefaultView : Page
     {
         private DefaultViewModel _defaultVM = null;
+         
         private IMessenger _messenger = null;
 
         
         public DefaultView()
         {
             this.InitializeComponent();
-           Scroller.ViewChanged += Scroller_ViewChanged;
+           //Scroller.ViewChanged += Scroller_ViewChanged;
 
             _defaultVM = ServiceLocator.Current.GetInstance<DefaultViewModel>();
             _messenger = ServiceLocator.Current.GetInstance<IMessenger>();
 
-            //var d = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "ViewChanged" };
-            //var action = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = _defaultVM.ScrollerViewChangedCommand };
-            //d.Actions.Add(action);
-            //d.Attach(Scroller);
-
+           
             _defaultVM.ScrollerView = Scroller;
             _defaultVM.ContentRoot = ContentRoot;
-
-            _messenger.Send<NotificationMessage, DefaultViewModel>(new NotificationMessage(Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT));
+            _defaultVM.PlayFontIcon = PlayButton;
+            _defaultVM.LoveFontIcon = LoveButton;
+            _defaultVM.PlayButtonTitle = PlayButtonTitle;
+            _defaultVM.LoveButtonTitle = LoveButtonTitle;
+            
         }
 
-        private void Scroller_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
-        {
-            if (ContentRoot.Children.Count > 0)
-            {
-                if (Scroller.VerticalOffset >= Scroller.ScrollableHeight)
-                {
-                    var element = ContentRoot.Children
-                    .Where(item => item.Visibility == Visibility.Collapsed)
-                    .FirstOrDefault();
+        //private void Scroller_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
+        //{
+        //    if (ContentRoot.Children.Count > 0)
+        //    {
+        //        if (Scroller.VerticalOffset >= Scroller.ScrollableHeight)
+        //        {
+        //            var element = ContentRoot.Children
+        //            .Where(item => item.Visibility == Visibility.Collapsed)
+        //            .FirstOrDefault();
 
-                    if (element != null)
-                        element.Visibility = Visibility.Visible;
-                }
+        //            if (element != null)
+        //                element.Visibility = Visibility.Visible;
+        //        }
 
-            }
-        }
+        //    }
+        //}
 
         //private UIElement CreateFlipViewChild<T>(T datas)
         //{
@@ -70,11 +71,21 @@ namespace MonsterCast.View
         //    _flipView.SelectedIndex = 1;
         //    return _flipView;
         //}
-
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        private void Scroller_Loaded(object sender, RoutedEventArgs e)
         {
-           
-            base.OnNavigatedTo(e);         
+
+            ScrollBar scrollBar = ((FrameworkElement)VisualTreeHelper.GetChild(Scroller, 0)).FindName("VerticalScrollBar") as ScrollBar;
+            if(scrollBar != null)
+            {                
+                var trigger = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "ValueChanged" };
+                var action = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = _defaultVM.ScrollerBarValueChangedCommand };
+                trigger.Actions.Add(action);
+                trigger.Attach(scrollBar);
+
+                _defaultVM.ScrollerBar = scrollBar;
+            }
+
+            _messenger.Send<NotificationMessage, DefaultViewModel>(new NotificationMessage(Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT));
         }
     }
 }

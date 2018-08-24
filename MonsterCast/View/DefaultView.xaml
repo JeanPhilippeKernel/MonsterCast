@@ -10,7 +10,7 @@
     x:Class="MonsterCast.View.DefaultView"
     mc:Ignorable="d" DataContext="{Binding DefaultVM, Source={StaticResource ViewModelLocator}}">
     
-    <ScrollViewer x:Name="Scroller" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+    <ScrollViewer x:Name="Scroller" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Loaded="Scroller_Loaded">
         <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -41,13 +41,34 @@
                             ImageSource="{Binding CurrentCast.Address}"/>
                     </Grid.Background>
                 </Grid>
-                <Grid Grid.Column="1"  Margin="20,20,0,0"
-                            MaxHeight="200">
+                <Grid Grid.Column="1"  Margin="20,20,0,0" MaxHeight="200">
                     <StackPanel Orientation="Vertical">
                         <TextBlock Text="{Binding CurrentCast.Title}" Foreground="White"
                             FontSize="35px" FontWeight="Bold" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding CurrentCast.Subtitle}"
                             Foreground="White" FontSize="20px" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel VerticalAlignment="Bottom" Orientation="Horizontal">
+                        <Button Style="{StaticResource CastButtonStyle}" Foreground="White" 
+                                Background="Transparent"          
+                                Margin="20" Width="120" Height="35"
+                                Command="{Binding PlayCommand}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                <FontIcon x:Name="PlayButton" Width="20" FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" Margin="0,0,10,0" FontWeight="Bold"/>
+                                <TextBlock x:Name="PlayButtonTitle" Text="Play" FontWeight="Bold" VerticalAlignment="Center" Width="50"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Foreground="White"
+                                Background="Transparent"                            
+                                Width="120" Height="35"
+                                Style="{StaticResource CastButtonStyle}"
+                                Command="{Binding LoveCommand}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                <FontIcon x:Name="LoveButton" Width="25" FontFamily="Segoe MDL2 Assets" Glyph="&#xEB51;" Margin="0,0,10,0" FontWeight="Bold"/>
+                                <TextBlock x:Name="LoveButtonTitle" Text="Loves it" FontWeight="Bold" VerticalAlignment="Center" Width="65"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Grid>

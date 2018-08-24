@@ -9,7 +9,7 @@
     xmlns:Behaviors="using:Microsoft.Toolkit.Uwp.UI.Animations.Behaviors"
     mc:Ignorable="d"
     DataContext="{Binding CastDetailVM, Source={StaticResource ViewModelLocator}}">
-
+   
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid x:Name="ContentLayout" Background="Black">
             <Grid.RowDefinitions>
@@ -54,19 +54,27 @@
                             Foreground="White" FontSize="20px" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"/>
                     </StackPanel>
                     <StackPanel VerticalAlignment="Bottom" Orientation="Horizontal">
-                        <Button Content="Play" Foreground="White"
-                            Background="Transparent"
-                            Style="{StaticResource CastButtonStyle}"
-                            Margin="20" Width="80" Height="35"
-                                Command="{Binding PlayCommand}"/>
+                        <Button Style="{StaticResource CastButtonStyle}" Foreground="White" 
+                                Background="Transparent"          
+                                Margin="20" Width="80" Height="35" Command="{Binding PlayCommand}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                <FontIcon Width="20" FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" Margin="0,0,10,0" FontWeight="Bold"/>
+                                <TextBlock Text="Play" FontWeight="Bold" VerticalAlignment="Center" Width="50"/>
+                            </StackPanel>
 
-                        <Button Content="Add to favorite" Foreground="White"
-                            Background="Transparent"
-                            Style="{StaticResource CastButtonStyle1}"
-                            Width="130" Height="35"
-                            Command="{Binding FavoriteCommand}"/>
+                        </Button>
+
+                        <Button Foreground="White"
+                                Background="Transparent"                            
+                                Width="130" Height="35"
+                                Style="{StaticResource CastButtonStyle}"
+                                Command="{Binding FavoriteCommand}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                <FontIcon Width="25" FontFamily="Segoe MDL2 Assets" Glyph="&#xEB51;" Margin="0,0,10,0" FontWeight="Bold"/>
+                                <TextBlock Text="Loves it" FontWeight="Bold" VerticalAlignment="Center" Width="65"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
-
                 </Grid>
             </Grid>
 
