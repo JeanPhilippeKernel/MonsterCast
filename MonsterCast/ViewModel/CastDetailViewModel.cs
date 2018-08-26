@@ -2,13 +2,8 @@
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
-using MonsterCast.Helper;
 using MonsterCast.Model;
 using System;
-using System.Diagnostics;
-using System.Linq;
-using System.ServiceModel.Channels;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.UI;
 using Windows.UI.Xaml.Controls;
@@ -20,6 +15,7 @@ namespace MonsterCast.ViewModel
     {
         #region Fields
         private IMessenger _messenger = null;
+        private Core.Database.IMonsterDatabase _dbConn = null;
         private Cast _activeCast = null;
         private bool _isFavorite = false;
 
@@ -72,9 +68,10 @@ namespace MonsterCast.ViewModel
         public RelayCommand PlayCommand => _playCommand;
         public RelayCommand LoveCommand => _loveCommand;
         #endregion
-        public CastDetailViewModel(IMessenger messenger) 
+        public CastDetailViewModel(IMessenger messenger, Core.Database.IMonsterDatabase dbConnexion) 
         {
-            _messenger = messenger;                                     
+            _messenger = messenger;
+            _dbConn = dbConnexion;
             _messenger.Register<NotificationMessage>(this, ViewBuiltNotificationAction);
             _messenger.Register<GenericMessage<Cast>>(this, SetCastInfoAction);
 
@@ -87,36 +84,71 @@ namespace MonsterCast.ViewModel
             ActiveCast = args.Content;
         }
 
-        private void ViewBuiltNotificationAction(NotificationMessage args)
+        private async void ViewBuiltNotificationAction(NotificationMessage args)
         {
             if(args.Notification == Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT)
             {
-                //Check if the cast is already loved
+                //Check if the cast is already loved                
+                var _isLoved = await _dbConn.IsAlreadyExist<Cast>(c => c.Title == ActiveCast.Title);
+                if (_isLoved)
+                {
+                    //Update the Id of Cast                  
+                    var castUpdated = await UpdateCastAsync();
+                    if (castUpdated)
+                    {
+                        await DispatcherHelper.RunAsync(() =>
+                        {
+                            LoveFontIcon.Glyph = "\uEB52";
+                            LoveFontIcon.Foreground = new SolidColorBrush(Colors.Orange);
+                            LoveButtonTitle.Text = "You love";
+                        });
+                    }
+
+                }
+
                 //Check if the cast is currently playing
             }
         }
 
         private async void LoveRelayCommand()
         {
-            Helpers.AddCastToDbAsync(ActiveCast);
-            Debug.WriteLine("[*] cast added..");
-
-            await DispatcherHelper.RunAsync(() =>
+            
+            var _isLoved = await _dbConn.IsAlreadyExist<Cast>(c => c.Title == ActiveCast.Title);
+            if(!_isLoved)
             {
-                var _currentBrush = (SolidColorBrush)LoveFontIcon.Foreground;
-                if (_currentBrush.Color == Colors.White)
+                int inserted = await _dbConn.AddAsync(ActiveCast);
+                if(inserted > 0)
                 {
-                    LoveFontIcon.Glyph = "\uEB52";
-                    LoveFontIcon.Foreground = new SolidColorBrush(Colors.Orange);
-                    LoveButtonTitle.Text = "You love";
+                    //Update the Id of Cast
+                    var castUpdated = await UpdateCastAsync();
+                    if(castUpdated)
+                    {
+                        await DispatcherHelper.RunAsync(() =>
+                        {
+                            LoveFontIcon.Glyph = "\uEB52";
+                            LoveFontIcon.Foreground = new SolidColorBrush(Colors.Orange);
+                            LoveButtonTitle.Text = "You love";
+                        });
+                    }
+                                  
                 }
-                else
+                
+            }
+            else
+            {
+                int deleted = await _dbConn.RemoveAsync(ActiveCast);
+                if(deleted > 0)
                 {
-                    LoveFontIcon.Glyph = "\uEB51";
-                    LoveFontIcon.Foreground = new SolidColorBrush(Colors.White);
-                    LoveButtonTitle.Text = "Love it";
+                    //Reset the Id of Cast
+                    ActiveCast.Id = 0;
+                    await DispatcherHelper.RunAsync(() => {
+                        LoveFontIcon.Glyph = "\uEB51";
+                        LoveFontIcon.Foreground = new SolidColorBrush(Colors.White);
+                        LoveButtonTitle.Text = "Love it";
+                    });
                 }
-            });
+            }
+                
           
         }
 
@@ -141,6 +173,26 @@ namespace MonsterCast.ViewModel
                     PlayButtonTitle.Text = "Play";
                 });
             }
+        }
+
+
+        private async Task<bool> UpdateCastAsync()
+        {
+            var _updated = await await Task.Factory.StartNew(async () =>
+            {
+                try
+                {
+                    var _saved = await _dbConn.Database.GetAsync<Cast>(c => c.Title == ActiveCast.Title);
+                    ActiveCast.Id = _saved.Id;
+                    return true;
+                }
+                catch (Exception)
+                {
+
+                    return false;
+                }
+            });
+            return _updated;
         }
     }
 }

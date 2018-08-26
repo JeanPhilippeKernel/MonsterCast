@@ -106,7 +106,12 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Database\DatabaseUpdateEventArgs.cs" />
+    <Compile Include="Database\IMonsterDatabase.cs" />
+    <Compile Include="Database\MonsterDatabase.cs" />
+    <Compile Include="Database\SQLiteAsync.cs" />
     <Compile Include="Enumeration\Message.cs" />
+    <Compile Include="Helpers\Collection.cs" />
     <Compile Include="Helpers\XmlParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\MonsterCast.Core.rd.xml" />
@@ -114,6 +119,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.1.5</Version>
+    </PackageReference>
+    <PackageReference Include="sqlite-net-pcl">
+      <Version>1.4.118</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup />

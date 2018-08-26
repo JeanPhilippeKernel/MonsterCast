@@ -32,7 +32,7 @@ using System.Threading.Tasks;
 
 #pragma warning disable 1591 // XML Doc Comments
 
-namespace MonsterCast
+namespace MonsterCast.Core.Database
 {
 	public partial class SQLiteAsyncConnection
 	{

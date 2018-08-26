@@ -8,6 +8,7 @@ using MonsterCast.View;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -28,8 +29,9 @@ namespace MonsterCast.ViewModel
         private IEnumerable<Cast> _podcastCollection = null;
         private IEnumerable<IList<Cast>> _splitedCollection = null;
         private int _splitedCollectionLength = 0;
-        private Cast _currentCast = null;      
+        private Cast _currentCast = null;
         private IMessenger _messenger = null;
+        private Core.Database.IMonsterDatabase _dbConn = null;
 
         private ScrollViewer _scrollerView = null;
         private StackPanel _contentRoot = null;
@@ -40,7 +42,7 @@ namespace MonsterCast.ViewModel
 
         private TextBlock _playButtonTitle = null;
         private TextBlock _loveButtonTitle = null;
-        
+
 
         private bool _isLoading = false;
         #endregion
@@ -121,9 +123,10 @@ namespace MonsterCast.ViewModel
             set { Set(ref _isLoading, value); }
         }
         #endregion
-        public DefaultViewModel(IMessenger messenger)
+        public DefaultViewModel(IMessenger messenger, Core.Database.IMonsterDatabase dbConnexion)
         {
             _messenger = messenger;
+            _dbConn = dbConnexion;
             messenger.Register<NotificationMessage>(this, MessengerAction);
             messenger.Register<NotificationMessage>(this, ViewBuiltNotificationAction);
 
@@ -133,46 +136,72 @@ namespace MonsterCast.ViewModel
             _loveCommand = new RelayCommand(LoveRelayCommand);
         }
 
-       
+
 
         #region Messenger_Method
 
         private void ViewBuiltNotificationAction(NotificationMessage args)
         {
-            if(args.Notification == Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT)
+            if (args.Notification == Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT)
             {
                 //Todo: Check if the current Cast is love it
 
-                if (ContentRoot.Children.Count == 0)
+                Task.Run(async () =>
                 {
-                    bool _withBg = true;
-                                                                        
-                    for (int i = 0; i < _splitedCollectionLength; i++)
+                    var _isLoved = await _dbConn.IsAlreadyExist<Cast>(c => c.Title == CurrentCast.Title);
+                    if (_isLoved)
                     {
-                      
-                        if ((i == 0) || (i == 1))
+                        //Update the Id of Cast                  
+                        var castUpdated = await UpdateCastAsync();
+                        if (castUpdated)
                         {
-                            ContentRoot.Children.Add(CreateGridChild(SplitedCollection.ElementAt(i), _withBg));                          
+                            await DispatcherHelper.RunAsync(() =>
+                            {
+                                LoveFontIcon.Glyph = "\uEB52";
+                                LoveFontIcon.Foreground = new SolidColorBrush(Colors.Orange);
+                                LoveButtonTitle.Text = "You love";
+                            });
                         }
 
-                        else
-                        {
-                            ContentRoot.Children.Add(CreateGridChild(SplitedCollection.ElementAt(i), _withBg, Visibility.Collapsed));                          
-                        }
-                        _withBg = _withBg == true ? false : true;
                     }
-                    ContentRoot.UpdateLayout();
-                }
+                });
+
+                Task.Run(() =>
+                {
+                    DispatcherHelper.RunAsync(() =>
+                    {
+                        if (ContentRoot.Children.Count == 0)
+                        {
+                            bool _withBg = true;
+
+                            for (int i = 0; i < _splitedCollectionLength; i++)
+                            {
+
+                                if ((i == 0) || (i == 1))
+                                {
+                                    ContentRoot.Children.Add(CreateGridChild(SplitedCollection.ElementAt(i), _withBg));
+                                }
+
+                                else
+                                {
+                                    ContentRoot.Children.Add(CreateGridChild(SplitedCollection.ElementAt(i), _withBg, Visibility.Collapsed));
+                                }
+                                _withBg = _withBg == true ? false : true;
+                            }
+                            ContentRoot.UpdateLayout();
+                        }
+                    });
+                });
             }
         }
         private void MessengerAction(NotificationMessage args)
         {
-            if(args.Notification == Core.Enumeration.Message.NOTIFICATION_PODCAST_HAS_BEEN_SET)
+            if (args.Notification == Core.Enumeration.Message.NOTIFICATION_PODCAST_HAS_BEEN_SET)
             {
                 PodcastCollection = AppConstants.PodcastCollection;
                 CurrentCast = PodcastCollection.Count() > 0 ? PodcastCollection.ElementAt(0) : null;
 
-                SplitedCollection = Helpers.SplitCollection(ref _podcastCollection, 8);
+                SplitedCollection = Core.Helpers.Collection.Spliter(ref _podcastCollection, 8);
                 _splitedCollectionLength = SplitedCollection.Count();
 
                 IsLoading = true;
@@ -183,7 +212,7 @@ namespace MonsterCast.ViewModel
                 }
                 IsLoading = false;
             }
-            
+
             //var firstFiveElement = PodcastCollection.Take(5);
             //Helpers.FetchImageParallel(ref firstFiveElement);
             //NextCurrentCollection = firstFiveElement;
@@ -194,22 +223,42 @@ namespace MonsterCast.ViewModel
 
         private async void LoveRelayCommand()
         {
-            await DispatcherHelper.RunAsync(() =>
+            var _isLoved = await _dbConn.IsAlreadyExist<Cast>(c => c.Title == CurrentCast.Title);
+            if (!_isLoved)
             {
-                var _currentBrush = (SolidColorBrush)LoveFontIcon.Foreground;
-                if (_currentBrush.Color == Colors.White)
+                int inserted = await _dbConn.AddAsync(CurrentCast);
+                if (inserted > 0)
                 {
-                    LoveFontIcon.Glyph = "\uEB52";
-                    LoveFontIcon.Foreground = new SolidColorBrush(Colors.Orange);
-                    LoveButtonTitle.Text = "You love";
+                    //Update the Id of Cast
+                    var castUpdated = await UpdateCastAsync();
+                    if (castUpdated)
+                    {
+                        DispatcherHelper.RunAsync(() =>
+                       {
+                           LoveFontIcon.Glyph = "\uEB52";
+                           LoveFontIcon.Foreground = new SolidColorBrush(Colors.Orange);
+                           LoveButtonTitle.Text = "You love";
+                       });
+                    }
+
                 }
-                else
+
+            }
+            else
+            {
+                int deleted = await _dbConn.RemoveAsync(CurrentCast);
+                if (deleted > 0)
                 {
-                    LoveFontIcon.Glyph = "\uEB51";
-                    LoveFontIcon.Foreground = new SolidColorBrush(Colors.White);
-                    LoveButtonTitle.Text = "Love it";
+                    //Reset the Id of Cast
+                    CurrentCast.Id = 0;
+                    DispatcherHelper.RunAsync(() =>
+                    {
+                        LoveFontIcon.Glyph = "\uEB51";
+                        LoveFontIcon.Foreground = new SolidColorBrush(Colors.White);
+                        LoveButtonTitle.Text = "Love it";
+                    });
                 }
-            });
+            }
         }
 
         private async void PlayRelayCommand()
@@ -307,5 +356,24 @@ namespace MonsterCast.ViewModel
             _grid.Children.Add(_gridView);
             return _grid;
         }
+        private async Task<bool> UpdateCastAsync()
+        {
+            var _updated = await await Task.Factory.StartNew(async () =>
+            {
+                try
+                {
+                    var _saved = await _dbConn.Database.GetAsync<Cast>(c => c.Title == CurrentCast.Title);
+                    CurrentCast.Id = _saved.Id;
+                    return true;
+                }
+                catch (Exception)
+                {
+
+                    return false;
+                }
+            });
+            return _updated;
+        }
+
     }
 }

@@ -13,7 +13,7 @@ namespace MonsterCast.Core.Helpers
     {
         private static List<dynamic> _collection =  new List<dynamic>();
         private static ExpandoObject _currentItem = new ExpandoObject();
-       
+            
         public static Task<List<dynamic>> Parse(Stream _stream)
         {
             return Task.Factory.StartNew(()=> 

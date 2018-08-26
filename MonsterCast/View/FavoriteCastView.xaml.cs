@@ -1,4 +1,7 @@
-﻿using System;
+﻿using CommonServiceLocator;
+using GalaSoft.MvvmLight.Messaging;
+using MonsterCast.ViewModel;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,10 +25,16 @@ namespace MonsterCast.View
     /// </summary>
     public sealed partial class FavoriteCastView : Page
     {
+        private IMessenger _messenger = null;
         public FavoriteCastView()
         {
             this.InitializeComponent();
-            //this.NavigationCacheMode = NavigationCacheMode.Enabled;
+            _messenger = ServiceLocator.Current.GetInstance<IMessenger>();
+        }
+
+        private void FavoritePage_Loaded(object sender, RoutedEventArgs e)
+        {
+            _messenger.Send<NotificationMessage, FavoriteViewModel>(new NotificationMessage(Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT));
         }
     }
 }
