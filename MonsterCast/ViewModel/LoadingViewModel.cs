@@ -85,7 +85,7 @@ namespace MonsterCast.ViewModel
                     {
                         await DispatcherHelper.RunAsync(() =>
                         {
-                            Messenger.Send(new NotificationMessage(Core.Enumeration.Message.NOTIFICATION_PODCAST_HAS_BEEN_SET));                          
+                            Messenger.Send<NotificationMessage, DefaultViewModel>(new NotificationMessage(Core.Enumeration.Message.NOTIFICATION_PODCAST_HAS_BEEN_SET));                          
                             NavigationService.NavigateTo(ViewModelLocator.MainViewKey);
                         });
 

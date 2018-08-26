@@ -241,7 +241,7 @@ namespace MonsterCast.ViewModel
             var pageType = typeof(CastDetailView);
             _messenger.Send(new GenericMessage<Type>(pageType), Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION);
 
-            _messenger.Send(new GenericMessage<Cast>(clickedCast), "fromDefault");
+            _messenger.Send<GenericMessage<Cast>, CastDetailViewModel>(new GenericMessage<Cast>(clickedCast));
         }
 
         private void ScrollerBarValueChangedAction(RangeBaseValueChangedEventArgs args)

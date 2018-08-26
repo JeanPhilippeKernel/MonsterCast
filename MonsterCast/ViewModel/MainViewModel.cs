@@ -27,7 +27,8 @@ namespace MonsterCast.ViewModel
         private readonly RelayCommand<NavigationEventArgs> _hostedFrameNavigatedCommand = null;
         private readonly RelayCommand<TappedRoutedEventArgs> _soundFontIconTappedCommand = null;
         private readonly RelayCommand<TappedRoutedEventArgs> _playFontIconTappedCommand = null;
-        private readonly RelayCommand<TappedRoutedEventArgs> _loopFontIconTappedCommand = null;      
+        private readonly RelayCommand<TappedRoutedEventArgs> _loopFontIconTappedCommand = null;
+        private readonly RelayCommand _playbackBadgeClickCommand = null;      
         private IMessenger _messenger = null;
 
         private Cast _activeMedia = null;
@@ -47,6 +48,7 @@ namespace MonsterCast.ViewModel
         private FontIcon _soundFontIcon = null;
         private FontIcon _playFontIcon = null;
         private FontIcon _loopFontIcon = null;
+        private Button _playbackBadge = null;
         #endregion
 
         #region Properties
@@ -61,6 +63,7 @@ namespace MonsterCast.ViewModel
         public RelayCommand<TappedRoutedEventArgs> SoundFontIconTappedCommand => _soundFontIconTappedCommand;
         public RelayCommand<TappedRoutedEventArgs> PlayFontIconTappedCommand => _playFontIconTappedCommand;
         public RelayCommand<TappedRoutedEventArgs> LoopFontIconTappedCommand => _loopFontIconTappedCommand;
+        public RelayCommand PlaybackBadgeClickCommand => _playbackBadgeClickCommand;
         public List<NavigationViewItem> MenuItemCollection => new List<NavigationViewItem>
         {
 
@@ -150,6 +153,12 @@ namespace MonsterCast.ViewModel
             set { Set(() => LoopFontIcon, ref _loopFontIcon, value); }
         }
 
+        public Button PlaybackBadge
+        {
+            get { return _playbackBadge; }
+            set { Set(() => _playbackBadge, ref _playbackBadge, value); }
+        }
+
         public NavigationViewBackButtonVisible IsBackButtonVisible
         {
             get { return _isBackButtonVisible; }
@@ -175,6 +184,7 @@ namespace MonsterCast.ViewModel
             _soundFontIconTappedCommand = new RelayCommand<TappedRoutedEventArgs>(SoundFontIconTappedRelayCommand);
             _playFontIconTappedCommand = new RelayCommand<TappedRoutedEventArgs>(PlayFontIconTappedRelayCommand);
             _loopFontIconTappedCommand = new RelayCommand<TappedRoutedEventArgs>(LoopFontIconTappedRelayCommandAsync);
+            _playbackBadgeClickCommand = new RelayCommand(PlaybackBadgeRelayCommandAsync);
 
             AppConstants.Player.BufferingStarted += Player_BufferingStartedAsync;
             AppConstants.Player.BufferingEnded += Player_BufferingEndedAsync;
@@ -188,6 +198,8 @@ namespace MonsterCast.ViewModel
         }
 
         
+
+
         #region Messenger_Method
         private void ViewBuiltNotificationAction(NotificationMessage<Type> args)
         {
@@ -320,6 +332,13 @@ namespace MonsterCast.ViewModel
         #endregion
 
         #region RelayCommand_Method
+
+        private async void PlaybackBadgeRelayCommandAsync()
+        {
+            var placementElement = PlaybackBadge as Windows.UI.Xaml.FrameworkElement;
+            await DispatcherHelper.RunAsync(() => PlaybackBadge.ContextFlyout.ShowAt(placementElement));
+        }
+
         private async void LoopFontIconTappedRelayCommandAsync(TappedRoutedEventArgs argss)
         {
             AppConstants.Player.IsLoopingEnabled = AppConstants.Player.IsLoopingEnabled == true ? false : true;

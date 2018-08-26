@@ -20,10 +20,10 @@ namespace MonsterCast.Helper
         private static SQLiteAsyncConnection _db = null;
         public static SQLiteAsyncConnection Database
         {
-            get { return _db; }
-            set { _db = value; }
+            get => _db;
+            set => _db = value;
         }
-       public static event EventHandler DatabaseUpdated;
+        public static event EventHandler DatabaseUpdated;
         public static async void SetDatabaseAsync()
         {
             try

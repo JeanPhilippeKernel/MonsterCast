@@ -8,7 +8,7 @@
     xmlns:Interactivity="using:Microsoft.Xaml.Interactivity" 
     xmlns:Behaviors="using:Microsoft.Toolkit.Uwp.UI.Animations.Behaviors"
     mc:Ignorable="d"
-    DataContext="{Binding CastDetailVM, Source={StaticResource ViewModelLocator}}">
+    DataContext="{Binding CastDetailVM, Source={StaticResource ViewModelLocator}}" Loaded="Page_Loaded">
    
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid x:Name="ContentLayout" Background="Black">
@@ -56,22 +56,22 @@
                     <StackPanel VerticalAlignment="Bottom" Orientation="Horizontal">
                         <Button Style="{StaticResource CastButtonStyle}" Foreground="White" 
                                 Background="Transparent"          
-                                Margin="20" Width="80" Height="35" Command="{Binding PlayCommand}">
+                                Margin="20" Width="120" Height="35" Command="{Binding PlayCommand}">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                                <FontIcon Width="20" FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" Margin="0,0,10,0" FontWeight="Bold"/>
-                                <TextBlock Text="Play" FontWeight="Bold" VerticalAlignment="Center" Width="50"/>
+                                <FontIcon x:Name="PlayButton" Width="20" FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" Margin="0,0,10,0" FontWeight="Bold"/>
+                                <TextBlock x:Name="PlayButtonTitle" Text="Play" FontWeight="Bold" VerticalAlignment="Center" Width="50"/>
                             </StackPanel>
 
                         </Button>
 
                         <Button Foreground="White"
                                 Background="Transparent"                            
-                                Width="130" Height="35"
+                                Width="120" Height="35"
                                 Style="{StaticResource CastButtonStyle}"
-                                Command="{Binding FavoriteCommand}">
+                                Command="{Binding LoveCommand}">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                                <FontIcon Width="25" FontFamily="Segoe MDL2 Assets" Glyph="&#xEB51;" Margin="0,0,10,0" FontWeight="Bold"/>
-                                <TextBlock Text="Loves it" FontWeight="Bold" VerticalAlignment="Center" Width="65"/>
+                                <FontIcon x:Name="LoveButton" Width="25" FontFamily="Segoe MDL2 Assets" Glyph="&#xEB51;" Margin="0,0,10,0" FontWeight="Bold"/>
+                                <TextBlock x:Name="LoveButtonTitle" Text="Loves it" FontWeight="Bold" VerticalAlignment="Center" Width="65"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>

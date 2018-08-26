@@ -3,6 +3,7 @@ using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using MonsterCast.Helper;
 using MonsterCast.Model;
+using MonsterCast.View;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -45,9 +46,9 @@ namespace MonsterCast.ViewModel
         private void RelayCommandHandler(ItemClickEventArgs e)
         {           
             var clickedCast = e.ClickedItem as Cast;
-            var pageType = Type.GetType("MonsterCast.View.CastDetailView");
-            _messenger.Send(new GenericMessage<Type>(pageType), Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION);
-            _messenger.Send(new GenericMessage<Cast>(clickedCast), "fromFavorite");
+            //var pageType = ;
+            _messenger.Send(new GenericMessage<Type>(typeof(CastDetailView)), Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION);
+            _messenger.Send<GenericMessage<Cast>, CastDetailViewModel>(new GenericMessage<Cast>(clickedCast));
         }
 
         private void MessengerAction(GenericMessage<Cast> args)

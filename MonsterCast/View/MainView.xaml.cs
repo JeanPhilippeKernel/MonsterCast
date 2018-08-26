@@ -34,6 +34,7 @@ namespace MonsterCast.View
             _mainVM.PlayFontIcon = PlayButton;
             _mainVM.SoundFontIcon = SoundButton;
             _mainVM.LoopFontIcon = LoopButton;
+            _mainVM.PlaybackBadge = playbackBadge;
         }
 
         private void Page_Loaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)

@@ -1,4 +1,7 @@
-﻿using System;
+﻿using CommonServiceLocator;
+using GalaSoft.MvvmLight.Messaging;
+using MonsterCast.ViewModel;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,9 +25,24 @@ namespace MonsterCast.View
     /// </summary>
     public sealed partial class CastDetailView : Page
     {
+        private CastDetailViewModel _castDetailVM = null;
+        private IMessenger _messenger = null;
         public CastDetailView()
         {
             this.InitializeComponent();
+
+            _castDetailVM = ServiceLocator.Current.GetInstance<CastDetailViewModel>();
+            _messenger = ServiceLocator.Current.GetInstance<IMessenger>();
+
+            _castDetailVM.PlayFontIcon = PlayButton;
+            _castDetailVM.LoveFontIcon = LoveButton;
+            _castDetailVM.PlayButtonTitle = PlayButtonTitle;
+            _castDetailVM.LoveButtonTitle = LoveButtonTitle;
+        }
+
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            _messenger.Send<NotificationMessage, CastDetailViewModel>(new NotificationMessage(Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT));
         }
     }
 }

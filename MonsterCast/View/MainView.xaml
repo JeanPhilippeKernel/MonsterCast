@@ -167,7 +167,11 @@
                     </StackPanel>
 
                 </Grid>
-                <Button HorizontalAlignment="Right" Background="Transparent" BorderBrush="Transparent" Foreground="White" Padding="0" VerticalAlignment="Center" Margin="0, 0, 0,0">
+                <Button x:Name="playbackBadge" 
+                        HorizontalAlignment="Right" 
+                        Background="Transparent" 
+                        BorderBrush="Transparent" Foreground="White" Padding="0" VerticalAlignment="Center" Margin="0, 0, 0, 0"
+                        Command="{Binding PlaybackBadgeClickCommand}">
                     <StackPanel Orientation="Horizontal" MaxHeight="66">
                         <Image MinWidth="66" MaxWidth="66" MinHeight="66" MaxHeight="66" Stretch="UniformToFill" 
                                Source="{Binding ActiveMedia.Address}"/>
@@ -180,6 +184,14 @@
                             </StackPanel>
                         </Grid>
                     </StackPanel>
+                    <Button.ContextFlyout>
+                        <Flyout LightDismissOverlayMode="Off">
+                          
+                            <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                
+                            </Grid>
+                        </Flyout>
+                    </Button.ContextFlyout>
                 </Button>
             </Grid>
         </Grid>
