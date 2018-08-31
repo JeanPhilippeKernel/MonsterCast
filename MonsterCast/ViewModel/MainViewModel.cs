@@ -40,10 +40,12 @@ namespace MonsterCast.ViewModel
 
         private bool _isBufferingProgress = false;
 
+        
         private NavigationView _mainNavigationView = null;
         private NavigationViewItem _currentNavigationViewItem = null;
         private Frame _hostedFrame = null;
-        private NavigationViewBackButtonVisible _isBackButtonVisible = NavigationViewBackButtonVisible.Collapsed;
+        private Button _navigationViewBackButton = null;
+        private bool _isBackButtonEnable = false;
 
         private FontIcon _soundFontIcon = null;
         private FontIcon _playFontIcon = null;
@@ -135,6 +137,12 @@ namespace MonsterCast.ViewModel
             set { Set(() => HostedFrame, ref _hostedFrame, value); }
         }
 
+        public Button NavigationViewBackButton
+        {
+            get { return _navigationViewBackButton; }
+            set { Set(() => NavigationViewBackButton, ref _navigationViewBackButton, value); }
+        }
+
         public FontIcon PlayFontIcon
         {
             get { return _playFontIcon; }
@@ -156,13 +164,13 @@ namespace MonsterCast.ViewModel
         public Button PlaybackBadge
         {
             get { return _playbackBadge; }
-            set { Set(() => _playbackBadge, ref _playbackBadge, value); }
+            set { Set(() => PlaybackBadge, ref _playbackBadge, value); }
         }
 
-        public NavigationViewBackButtonVisible IsBackButtonVisible
+        public bool IsBackButtonEnable
         {
-            get { return _isBackButtonVisible; }
-            set { Set(() => IsBackButtonVisible, ref _isBackButtonVisible, value); }
+            get { return _isBackButtonEnable; }
+            set { Set(() => IsBackButtonEnable, ref _isBackButtonEnable, value); }
         }
         #endregion
 
@@ -205,6 +213,7 @@ namespace MonsterCast.ViewModel
         {
             if(args.Notification == Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT)
             {
+               
                 var _navigationViewItem = ((IList<NavigationViewItem>)MainNavigationView.MenuItemsSource).Single(e => (Type)e.Tag == args.Content);
                 _navigationViewItem.IsSelected = true;
 
@@ -374,7 +383,8 @@ namespace MonsterCast.ViewModel
         {
             if (HostedFrame != null)
             {
-                IsBackButtonVisible = HostedFrame.CanGoBack ? NavigationViewBackButtonVisible.Visible : NavigationViewBackButtonVisible.Collapsed;
+                IsBackButtonEnable = HostedFrame.CanGoBack ? true : false;
+                NavigationViewBackButton.IsEnabled = IsBackButtonEnable;
             }
         }
                                                                  
@@ -399,7 +409,8 @@ namespace MonsterCast.ViewModel
         }
         private void BackButtonRelayCommand(NavigationViewBackRequestedEventArgs args)
         {
-            HostedFrame.GoBack();
+            if (HostedFrame.CanGoBack)
+                HostedFrame.GoBack();
         }
 
         private void InvokedMenuItemRelayCommand(NavigationViewItemInvokedEventArgs args)

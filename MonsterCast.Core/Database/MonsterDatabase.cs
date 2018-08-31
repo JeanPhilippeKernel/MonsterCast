@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -51,18 +52,26 @@ namespace MonsterCast.Core.Database
 
         public async Task<int> ConnectAsync()
         {
+            StorageFolder _folder = null;
+            StorageFile _dbFile = null;
+
+
             try
             {
-                var _folder = await ApplicationData.Current.LocalFolder.GetFolderAsync("Database");
-                if (_folder == null)
-                    _folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("Database", CreationCollisionOption.OpenIfExists);
-
-                var _dbFile = await _folder.CreateFileAsync("castdb", CreationCollisionOption.OpenIfExists);
-                if (_db == null)
-                    _db = new SQLiteAsyncConnection(_dbFile.Path);
+                _folder = await ApplicationData.Current.LocalFolder.GetFolderAsync("Database");
+                _dbFile = await _folder.CreateFileAsync("castdb", CreationCollisionOption.OpenIfExists);               
+                _db = new SQLiteAsyncConnection(_dbFile.Path);
                 return 0;
             }
-            catch (Exception)
+            catch (FileNotFoundException e)
+            {
+
+                _folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("Database", CreationCollisionOption.OpenIfExists);
+                _dbFile = await _folder.CreateFileAsync("castdb", CreationCollisionOption.OpenIfExists);
+                _db = new SQLiteAsyncConnection(_dbFile.Path);
+                return 0;
+            }
+            catch(Exception)
             {
                 return -1;
             }

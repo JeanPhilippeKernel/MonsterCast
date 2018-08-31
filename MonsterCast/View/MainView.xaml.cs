@@ -4,7 +4,10 @@ using GalaSoft.MvvmLight.Views;
 using MonsterCast.Model;
 using MonsterCast.ViewModel;
 using System;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Data;
+using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 // Pour plus d'informations sur le modèle d'élément Page vierge, voir la page http://go.microsoft.com/fwlink/?LinkId=234238
@@ -39,6 +42,12 @@ namespace MonsterCast.View
 
         private void Page_Loaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
+            Button navigationBackButton = ((FrameworkElement)VisualTreeHelper.GetChild(MainNavigationView, 0)).FindName("NavigationViewBackButton") as Button;
+            if(navigationBackButton != null)
+            {               
+                _mainVM.NavigationViewBackButton = navigationBackButton;
+            }
+
             _messenger.Send<NotificationMessage<Type>, MainViewModel>(new NotificationMessage<Type>(typeof(DefaultView), Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT));
         }
     }

@@ -9,7 +9,7 @@
     mc:Ignorable="d"
     DataContext="{Binding MainVM, Source={StaticResource ViewModelLocator}}"
     Loaded="Page_Loaded">
-
+    
     <Grid Background="Black" Opacity="0.95">
         <Grid x:Name="MainCanvas" HorizontalAlignment="Stretch" 
                 VerticalAlignment="Stretch"
@@ -21,8 +21,8 @@
             <!--Main content area -->
 
             <Grid x:Name="RootContent" Canvas.ZIndex="100">
-                <NavigationView x:Name="MainNavigationView" OpenPaneLength="240" 
-                                IsBackEnabled="True" IsBackButtonVisible="{Binding IsBackButtonVisible}"
+                <!--IsBackEnabled="True" IsBackButtonVisible="{Binding IsBackButtonVisible}"-->
+                <NavigationView Style="{StaticResource CustomNavigationViewStyle}" x:Name="MainNavigationView" OpenPaneLength="240"                                
                                 IsSettingsVisible="False"
                                 MenuItemsSource="{Binding MenuItemCollection}"
                                 AlwaysShowHeader="False">
