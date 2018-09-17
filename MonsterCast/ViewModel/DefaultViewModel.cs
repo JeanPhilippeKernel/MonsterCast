@@ -297,6 +297,8 @@ namespace MonsterCast.ViewModel
         {
             if (ContentRoot.Children.Count > 0)
             {
+                //Todo : send message to change the content overlay of navigationView
+
                 if (/*ScrollerView.VerticalOffset*/ args.NewValue >= ScrollerView.ScrollableHeight)
                 {
                     var element = ContentRoot.Children

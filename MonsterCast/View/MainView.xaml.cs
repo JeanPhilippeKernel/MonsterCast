@@ -28,6 +28,7 @@ namespace MonsterCast.View
         {
             this.InitializeComponent();
             NavigationCacheMode = NavigationCacheMode.Required;
+            HostedFrame.CacheSize = 1;
 
             _mainVM = ServiceLocator.Current.GetInstance<MainViewModel>();
             _messenger = ServiceLocator.Current.GetInstance<IMessenger>();

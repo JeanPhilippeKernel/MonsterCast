@@ -12,10 +12,12 @@ namespace MonsterCast.Core.Enumeration
         public const string NOTIFICATION_VIEW_HAS_BEEN_BUILT = "notification:view_has_been_built";
 
         public const string REQUEST_VIEW_NAVIGATION = "request:view:navigation";
+        public const string REQUEST_SET_NAVIGATIONVIEW_CONTENTOVERLAY = "request:view:set_navigationview_contentoverlay";
         public const string REQUEST_FAVORITE_ADD = "request:favorite:add";
         public const string REQUEST_FAVORITE_REMOVE = "request:favorite:remove";
         public const string REQUEST_MEDIAPLAYER_PLAY_SONG = "request:mediaplayer:play_song";
         public const string REQUEST_MEDIAPLAYER_PAUSE_SONG = "request:mediaplayer:pause_song";
+
 
         public const string FAVORITE_ADDED = "favorite:added";
         public const string FAVORITE_REMOVED = "favorite:removed";

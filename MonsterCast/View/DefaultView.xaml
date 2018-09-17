@@ -10,7 +10,7 @@
     x:Class="MonsterCast.View.DefaultView"
     mc:Ignorable="d" DataContext="{Binding DefaultVM, Source={StaticResource ViewModelLocator}}">
     
-    <ScrollViewer x:Name="Scroller" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Loaded="Scroller_Loaded">
+    <ScrollViewer x:Name="Scroller" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  Loaded="Scroller_Loaded">
         <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
