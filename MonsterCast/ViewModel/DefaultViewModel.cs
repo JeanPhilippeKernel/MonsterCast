@@ -7,6 +7,7 @@ using MonsterCast.Model;
 using MonsterCast.View;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.UI;
@@ -25,16 +26,21 @@ namespace MonsterCast.ViewModel
         private readonly RelayCommand<ItemClickEventArgs> _castItemClickCommand = null;
         private readonly RelayCommand _playCommand = null;
         private readonly RelayCommand _loveCommand = null;
+        
         //private IEnumerable<Cast> _nextCurrentCollection = null;
         private IEnumerable<Cast> _podcastCollection = null;
         private IEnumerable<IList<Cast>> _splitedCollection = null;
+        private ObservableCollection<Cast> _showedCollection = null;
+
+        private int _showedCollectionIndex = 0;
         private int _splitedCollectionLength = 0;
         private Cast _currentCast = null;
         private IMessenger _messenger = null;
         private Core.Database.IMonsterDatabase _dbConn = null;
 
         private ScrollViewer _scrollerView = null;
-        private StackPanel _contentRoot = null;
+        //private StackPanel _contentRoot = null;
+        private GridView _contentRoot = null;
         private ScrollBar _scrollerBar = null;
 
         private FontIcon _playFontIcon = null;
@@ -69,6 +75,12 @@ namespace MonsterCast.ViewModel
             set { Set(ref _splitedCollection, value); }
         }
 
+        public ObservableCollection<Cast> ShowedCollection
+        {
+            get { return _showedCollection; }
+            set { Set(ref _showedCollection, value); }
+        }
+
         public Cast CurrentCast
         {
             get { return _currentCast; }
@@ -81,7 +93,13 @@ namespace MonsterCast.ViewModel
             set { Set(ref _scrollerView, value); }
         }
 
-        public StackPanel ContentRoot
+        //public StackPanel ContentRoot
+        //{
+        //    get { return _contentRoot; }
+        //    set { Set(ref _contentRoot, value); }
+        //}
+
+        public GridView ContentRoot
         {
             get { return _contentRoot; }
             set { Set(ref _contentRoot, value); }
@@ -125,8 +143,11 @@ namespace MonsterCast.ViewModel
         #endregion
         public DefaultViewModel(IMessenger messenger, Core.Database.IMonsterDatabase dbConnexion)
         {
+
             _messenger = messenger;
             _dbConn = dbConnexion;
+            _showedCollection = new ObservableCollection<Cast>();
+
             messenger.Register<NotificationMessage>(this, MessengerAction);
             messenger.Register<NotificationMessage>(this, ViewBuiltNotificationAction);
 
@@ -155,7 +176,7 @@ namespace MonsterCast.ViewModel
                         var castUpdated = await UpdateCastAsync();
                         if (castUpdated)
                         {
-                            await DispatcherHelper.RunAsync(() =>
+                            DispatcherHelper.CheckBeginInvokeOnUI(() =>
                             {
                                 LoveFontIcon.Glyph = "\uEB52";
                                 LoveFontIcon.Foreground = new SolidColorBrush(Colors.Orange);
@@ -165,33 +186,59 @@ namespace MonsterCast.ViewModel
 
                     }
                 });
-
                 Task.Run(() =>
                 {
-                    DispatcherHelper.RunAsync(() =>
+                    DispatcherHelper.CheckBeginInvokeOnUI(() =>
                     {
-                        if (ContentRoot.Children.Count == 0)
-                        {
-                            bool _withBg = true;
-
-                            for (int i = 0; i < _splitedCollectionLength; i++)
-                            {
-
-                                if ((i == 0) || (i == 1))
-                                {
-                                    ContentRoot.Children.Add(CreateGridChild(SplitedCollection.ElementAt(i), _withBg));
-                                }
-
-                                else
-                                {
-                                    ContentRoot.Children.Add(CreateGridChild(SplitedCollection.ElementAt(i), _withBg, Visibility.Collapsed));
-                                }
-                                _withBg = _withBg == true ? false : true;
-                            }
-                            ContentRoot.UpdateLayout();
-                        }
+                        ShowedCollection.Clear();
+                        _showedCollectionIndex = 0;
+                        int length = SplitedCollection.ElementAt(0).Count;
+                        var datas = SplitedCollection.ElementAt(_showedCollectionIndex);
+                        
+                        for (int i = 0; i < length; i++)
+                            ShowedCollection.Add(datas.ElementAt(i));
                     });
                 });
+                //Task.Run( () =>
+                //{
+                //    DispatcherHelper.RunAsync(() =>
+                //    {
+                //        int length = SplitedCollection.Count();
+                //        for (int i = 0; i < length; i++)
+                //        {
+                //            var _itemsSource = ContentRoot.ItemsSource as List<Cast>;
+                //            if (_itemsSource == null)
+                //                ContentRoot.ItemsSource = new List<Cast>();
+
+                //            ((List<Cast>)ContentRoot.ItemsSource).AddRange(SplitedCollection.ElementAt(i));
+                //        }
+                        
+                //        //ContentRoot.UpdateLayout();
+
+                //        //if (ContentRoot.Children.Count == 0)
+                //        //{
+                //        //    bool _withBg = true;
+
+                //        //    for (int i = 0; i < _splitedCollectionLength; i++)
+                //        //    {
+
+                //        //        if ((i == 0) || (i == 1))
+                //        //        {
+                //        //            ContentRoot.Children.Add(CreateGridChild(SplitedCollection.ElementAt(i), _withBg));
+                //        //        }
+
+                //        //        else
+                //        //        {
+                //        //            ContentRoot.Children.Add(CreateGridChild(SplitedCollection.ElementAt(i), _withBg, Visibility.Collapsed));
+                //        //        }
+                //        //        _withBg = _withBg == true ? false : true;
+                //        //    }
+                //        //    ContentRoot.UpdateLayout();
+                //        //}
+                //    });
+                    
+                    
+                //});
             }
         }
         private void MessengerAction(NotificationMessage args)
@@ -201,7 +248,7 @@ namespace MonsterCast.ViewModel
                 PodcastCollection = AppConstants.PodcastCollection;
                 CurrentCast = PodcastCollection.Count() > 0 ? PodcastCollection.ElementAt(0) : null;
 
-                SplitedCollection = Core.Helpers.Collection.Spliter(ref _podcastCollection, 8);
+                SplitedCollection = Core.Helpers.Collection.Spliter(ref _podcastCollection, 20);
                 _splitedCollectionLength = SplitedCollection.Count();
 
                 IsLoading = true;
@@ -233,7 +280,7 @@ namespace MonsterCast.ViewModel
                     var castUpdated = await UpdateCastAsync();
                     if (castUpdated)
                     {
-                        DispatcherHelper.RunAsync(() =>
+                        DispatcherHelper.CheckBeginInvokeOnUI(() =>
                        {
                            LoveFontIcon.Glyph = "\uEB52";
                            LoveFontIcon.Foreground = new SolidColorBrush(Colors.Orange);
@@ -251,7 +298,7 @@ namespace MonsterCast.ViewModel
                 {
                     //Reset the Id of Cast
                     CurrentCast.Id = 0;
-                    DispatcherHelper.RunAsync(() =>
+                    DispatcherHelper.CheckBeginInvokeOnUI(() =>
                     {
                         LoveFontIcon.Glyph = "\uEB51";
                         LoveFontIcon.Foreground = new SolidColorBrush(Colors.White);
@@ -295,18 +342,39 @@ namespace MonsterCast.ViewModel
 
         private void ScrollerBarValueChangedAction(RangeBaseValueChangedEventArgs args)
         {
-            if (ContentRoot.Children.Count > 0)
+            if (ContentRoot.ItemsSource != null)
             {
                 //Todo : send message to change the content overlay of navigationView
 
                 if (/*ScrollerView.VerticalOffset*/ args.NewValue >= ScrollerView.ScrollableHeight)
                 {
-                    var element = ContentRoot.Children
-                    .Where(item => item.Visibility == Visibility.Collapsed)
-                    .FirstOrDefault();
+                    //var element = ContentRoot.Children
+                    //.Where(item => item.Visibility == Visibility.Collapsed)
+                    //.FirstOrDefault();
 
-                    if (element != null)
-                        element.Visibility = Visibility.Visible;
+                    //if (element != null)
+                    //    element.Visibility = Visibility.Visible;
+
+                    if(_showedCollectionIndex < (_splitedCollectionLength - 1))
+                    {
+                        ++_showedCollectionIndex;
+                        Task.Run(() =>
+                        {
+                            DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                            {
+                                
+                                int length = SplitedCollection.ElementAt(_showedCollectionIndex).Count;
+                                var datas = SplitedCollection.ElementAt(_showedCollectionIndex);
+
+                                for (int i = 0; i < length; i++)
+                                    ShowedCollection.Add(datas.ElementAt(i));
+                            });
+                        });
+                    }
+                    else
+                    {
+                        _showedCollectionIndex = 0;
+                    }
                 }
 
             }
@@ -360,7 +428,7 @@ namespace MonsterCast.ViewModel
         }
         private async Task<bool> UpdateCastAsync()
         {
-            var _updated = await await Task.Factory.StartNew(async () =>
+            var _updated = await Task.Run(async () =>
             {
                 try
                 {

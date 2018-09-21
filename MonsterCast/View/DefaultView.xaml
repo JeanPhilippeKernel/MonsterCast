@@ -10,8 +10,11 @@
     x:Class="MonsterCast.View.DefaultView"
     mc:Ignorable="d" DataContext="{Binding DefaultVM, Source={StaticResource ViewModelLocator}}">
     
-    <ScrollViewer x:Name="Scroller" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  Loaded="Scroller_Loaded">
-        <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+    <ScrollViewer x:Name="Scroller" 
+                  HorizontalAlignment="Stretch" 
+                  VerticalAlignment="Stretch" 
+                  Loaded="Scroller_Loaded">
+        <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="Transparent">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -73,10 +76,27 @@
                 </Grid>
             </Grid>
 
-            <StackPanel x:Name="ContentRoot" Grid.Row="1" VerticalAlignment="top"
+            
+            <GridView x:Name="ContentRoot" ItemTemplate="{StaticResource GridViewItemTemplateBlack}"
+                      IsItemClickEnabled="True" SelectionMode="None"
+                      ItemsSource="{Binding ShowedCollection}"
+                      Margin="20" Grid.Row="1" VerticalAlignment="top" HorizontalAlignment="Center">
+                <!--<GridView.Transitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                    </TransitionCollection>
+                </GridView.Transitions>-->
+                <Interactivity:Interaction.Behaviors>
+                    <Core:EventTriggerBehavior EventName="ItemClick">
+                        <Core:InvokeCommandAction Command="{Binding CastItemClickCommand}"/>
+                    </Core:EventTriggerBehavior>
+                </Interactivity:Interaction.Behaviors>
+            </GridView>
+            
+            <!--<StackPanel x:Name="ContentRoot" Grid.Row="1" VerticalAlignment="top"
                     HorizontalAlignment="stretch" Orientation="vertical">
-                <!--generated content here-->
-            </StackPanel>
+                --><!--generated content here--><!--
+            </StackPanel>-->
             <ProgressRing Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" IsActive="{Binding IsLoading}" Foreground="White" Height="50" Width="50"/>
             <!--<Interactivity:Interaction.Behaviors>
                 <Core:EventTriggerBehavior EventName="ViewChanged">

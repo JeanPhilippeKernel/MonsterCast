@@ -41,7 +41,10 @@
                         </MicrosoftUI:NavigationViewList>
                     </MicrosoftUI:NavigationView.PaneFooter>
               
-                    <Frame x:Name="HostedFrame" Background="Black"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                    <Frame x:Name="HostedFrame"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                        <Frame.Background>
+                            <AcrylicBrush BackgroundSource="HostBackdrop" TintColor="White" TintOpacity="0.8" FallbackColor="White" />
+                        </Frame.Background>
                         <Frame.ContentTransitions>
                             <TransitionCollection>
                                 <PopupThemeTransition/>

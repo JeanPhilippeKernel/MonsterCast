@@ -72,11 +72,11 @@ namespace MonsterCast.ViewModel
         public List<Microsoft.UI.Xaml.Controls.NavigationViewItem> MenuItemCollection => new List<Microsoft.UI.Xaml.Controls.NavigationViewItem>
         {
 
-            new Microsoft.UI.Xaml.Controls.NavigationViewItem { Icon = new FontIcon() { Glyph= "\uE93C", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") } , Content = "All podcasts", Tag = typeof(DefaultView) },
+            new Microsoft.UI.Xaml.Controls.NavigationViewItem { Icon = new FontIcon() { Glyph= "\uE93C", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets"), Foreground = new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.Blue) } , Content = "All podcasts", Tag = typeof(DefaultView) },
             //new Microsoft.UI.Xaml.Controls.NavigationViewItem { Icon = new FontIcon() { Glyph= "\uE77B", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") } , Content ="Artists", Tag = typeof(FavoriteCastView)},
-            new Microsoft.UI.Xaml.Controls.NavigationViewItem { Icon = new FontIcon() { Glyph= "\uE728", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") } , Content ="Your favorites", Tag = typeof(FavoriteCastView)},
+            new Microsoft.UI.Xaml.Controls.NavigationViewItem { Icon = new FontIcon() { Glyph= "\uE728", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets"), Foreground = new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.Blue) } , Content ="Your favorites", Tag = typeof(FavoriteCastView)},
 
-            new Microsoft.UI.Xaml.Controls.NavigationViewItem { Icon = new FontIcon() { Glyph= "\uE7F6", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets") }, Content = "Now Playing", Tag = typeof(NowPlayingView)},
+            new Microsoft.UI.Xaml.Controls.NavigationViewItem { Icon = new FontIcon() { Glyph= "\uE7F6", FontFamily = new Windows.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets"), Foreground = new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.Blue) }, Content = "Now Playing", Tag = typeof(NowPlayingView)},
             //new MenuItem {Icon = "ms-appx:///Assets/Menu/live.png", Name ="Live", PageType = typeof(LiveView) },            
         };
 

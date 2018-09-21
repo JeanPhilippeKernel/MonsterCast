@@ -81,9 +81,9 @@ namespace MonsterCast.ViewModel
                         AppConstants.PodcastCollection = await ConvertToCastObject(dynamicCollection);
 
                     }, TaskContinuationOptions.OnlyOnRanToCompletion);
-                    await _parsingTask.ContinueWith(async t =>
+                    await _parsingTask.ContinueWith(t =>
                     {
-                        await DispatcherHelper.RunAsync(() =>
+                        DispatcherHelper.CheckBeginInvokeOnUI(() =>
                         {
                             Messenger.Send<NotificationMessage, DefaultViewModel>(new NotificationMessage(Core.Enumeration.Message.NOTIFICATION_PODCAST_HAS_BEEN_SET));                          
                             NavigationService.NavigateTo(ViewModelLocator.MainViewKey);
@@ -121,9 +121,9 @@ namespace MonsterCast.ViewModel
             int _collectionCount = _collection.Count();
             int percent = 0;
 
-            return await await Task.Factory.StartNew(async () =>
+            return  await Task.Run(() =>
             {
-                await DispatcherHelper.RunAsync(() =>
+                DispatcherHelper.CheckBeginInvokeOnUI(() =>
                 {
                     for (int i = 0; i < _collectionCount; i++)
                     {
