@@ -98,13 +98,10 @@
         </Grid>
     </DataTemplate>
     <DataTemplate x:Key="GridViewItemTemplateBlack">
-        <Grid Padding="10,0,10,0" Margin="0" MinWidth="232" MinHeight="312">
+        <Grid x:Name="ContainerRoot" Padding="10,0,10,0" Margin="0" MinWidth="232" MinHeight="312">
             <StackPanel Orientation="Vertical" Margin="0,0,0,45">
-                <Grid MaxHeight="212" MinHeight="212" MaxWidth="212"
-                   VerticalAlignment="Top" Margin="0,0,0,18">
-                    
-                    <Image  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Stretch="UniformToFill" Source="{Binding Address}"/>
-                    
+                <Grid MaxHeight="212" MinHeight="212" MaxWidth="212" VerticalAlignment="Top" Margin="0,0,0,18">
+                    <Image VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Stretch="UniformToFill" Source="{Binding Address}"/>
                 </Grid>
                 <StackPanel Orientation="Horizontal">
                     <StackPanel Orientation="Vertical" Margin="0,0,0,0">
@@ -116,9 +113,69 @@
                                    TextTrimming="CharacterEllipsis"
                                    FontFamily="ms-appx:/Fonts/Montserrat-Regular.ttf#Montserrat"/>
                     </StackPanel>
-                    
                 </StackPanel>
             </StackPanel>
+
+            <Grid.ContextFlyout>
+                <Flyout LightDismissOverlayMode="Off" Placement="Right" >
+                    <Flyout.FlyoutPresenterStyle>
+                        <Style TargetType="FlyoutPresenter">
+                            <Setter Property="Background" >
+                                <Setter.Value>
+                                    <AcrylicBrush BackgroundSource="HostBackdrop" TintColor="White" TintOpacity="0.1" FallbackColor="White" />
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="5"/>
+                        </Style>
+                    </Flyout.FlyoutPresenterStyle>
+                    <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Height="300" Width="300" MaxHeight="400" MaxWidth="400">
+                        <Grid.RowDefinitions>
+                            <RowDefinition MinHeight="300"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Image Grid.Row="0" VerticalAlignment="Stretch" Margin="0" 
+                                       HorizontalAlignment="Stretch" 
+                                       Stretch="UniformToFill" Source="{Binding Address}"/>
+
+                        <Grid Grid.Row="0" VerticalAlignment="Bottom" Height="60" HorizontalAlignment="Stretch">
+                            <Grid.Background>
+                                <SolidColorBrush Opacity="0.7" Color="Black"/>
+                            </Grid.Background>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <FontIcon x:Name="PlaybackPlayButton" Height="40" Width="40" Margin="5" 
+                                          HorizontalAlignment="Left" Foreground="White"
+                                          FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;"  FontWeight="Bold">
+                                    <!--<Interactivity:Interaction.Behaviors>
+                                        <Core:EventTriggerBehavior EventName="Tapped">
+                                            <Core:InvokeCommandAction Command="{Binding PlaybackBadgeLoveFontIconTappedCommand}"/>
+                                        </Core:EventTriggerBehavior>
+                                    </Interactivity:Interaction.Behaviors>-->
+                                </FontIcon>
+                                <FontIcon x:Name="PlaybackLoveButton" Height="40" Width="40" Margin="5" 
+                                          HorizontalAlignment="Left" Foreground="White"
+                                          FontFamily="Segoe MDL2 Assets" Glyph="&#xEB51;" FontWeight="Bold">
+                                    <!--<Interactivity:Interaction.Behaviors>
+                                        <Core:EventTriggerBehavior EventName="Tapped">
+                                            <Core:InvokeCommandAction Command="{Binding PlaybackBadgeLoveFontIconTappedCommand}"/>
+                                        </Core:EventTriggerBehavior>
+                                    </Interactivity:Interaction.Behaviors>-->
+                                </FontIcon>
+                                <FontIcon x:Name="PlaybackInfoButton" Height="40" Width="40" Margin="5" 
+                                          HorizontalAlignment="Right" Foreground="White"
+                                          FontFamily="Segoe MDL2 Assets" Glyph="&#xE946;" FontWeight="Bold">
+                                    <!--<Interactivity:Interaction.Behaviors>
+                                        <Core:EventTriggerBehavior EventName="Tapped">
+                                            <Core:InvokeCommandAction Command="{Binding PlaybackBadgeInfoFontIconTappedCommand}"/>
+                                        </Core:EventTriggerBehavior>
+                                    </Interactivity:Interaction.Behaviors>-->
+                                </FontIcon>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Flyout>
+            </Grid.ContextFlyout>
         </Grid>
     </DataTemplate>
     <ItemsPanelTemplate x:Key="GridViewItemsPanelTemplate" >

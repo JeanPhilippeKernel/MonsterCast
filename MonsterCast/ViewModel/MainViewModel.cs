@@ -31,7 +31,12 @@ namespace MonsterCast.ViewModel
         private readonly RelayCommand<TappedRoutedEventArgs> _soundFontIconTappedCommand = null;
         private readonly RelayCommand<TappedRoutedEventArgs> _playFontIconTappedCommand = null;
         private readonly RelayCommand<TappedRoutedEventArgs> _loopFontIconTappedCommand = null;
-        private readonly RelayCommand _playbackBadgeClickCommand = null;      
+
+        private readonly RelayCommand _playbackBadgeClickCommand = null;
+        private readonly RelayCommand _playbackBadgeInfoFontIconTappedCommand = null;
+        private readonly RelayCommand _playbackBadgeLoveFontIconTappedCommand = null;  
+        
+
         private IMessenger _messenger = null;
 
         private Cast _activeMedia = null;
@@ -53,7 +58,12 @@ namespace MonsterCast.ViewModel
         private FontIcon _soundFontIcon = null;
         private FontIcon _playFontIcon = null;
         private FontIcon _loopFontIcon = null;
+
+
         private Button _playbackBadge = null;
+        private FontIcon _playbackBadgeInfoFontIcon = null;
+        private FontIcon _playbackBadgeLoveFontIcon = null;
+
         #endregion
 
         #region Properties
@@ -69,6 +79,8 @@ namespace MonsterCast.ViewModel
         public RelayCommand<TappedRoutedEventArgs> PlayFontIconTappedCommand => _playFontIconTappedCommand;
         public RelayCommand<TappedRoutedEventArgs> LoopFontIconTappedCommand => _loopFontIconTappedCommand;
         public RelayCommand PlaybackBadgeClickCommand => _playbackBadgeClickCommand;
+        public RelayCommand PlaybackBadgeInfoFontIconTappedCommand => _playbackBadgeInfoFontIconTappedCommand;
+        public RelayCommand PlaybackBadgeLoveFontIconTappedCommand => _playbackBadgeLoveFontIconTappedCommand;
         public List<Microsoft.UI.Xaml.Controls.NavigationViewItem> MenuItemCollection => new List<Microsoft.UI.Xaml.Controls.NavigationViewItem>
         {
 
@@ -172,6 +184,21 @@ namespace MonsterCast.ViewModel
             set { Set(() => PlaybackBadge, ref _playbackBadge, value); }
         }
 
+        public FontIcon PlaybackBadgeLoveFontIcon
+        {
+            get { return _playbackBadgeLoveFontIcon; }
+            set { Set(() => PlaybackBadgeLoveFontIcon, ref _playbackBadgeLoveFontIcon, value); }
+        }
+
+        public FontIcon PlaybackBadgeInfoFontIcon
+        {
+            get { return _playbackBadgeInfoFontIcon; }
+            set { Set(() => PlaybackBadgeInfoFontIcon, ref _playbackBadgeInfoFontIcon, value); }
+        }
+
+
+        
+
         public bool IsBackButtonEnable
         {
             get { return _isBackButtonEnable; }
@@ -201,6 +228,10 @@ namespace MonsterCast.ViewModel
             _loopFontIconTappedCommand = new RelayCommand<TappedRoutedEventArgs>(LoopFontIconTappedRelayCommandAsync);
             _playbackBadgeClickCommand = new RelayCommand(PlaybackBadgeRelayCommandAsync);
 
+            _playbackBadgeLoveFontIconTappedCommand = new RelayCommand(PlaybackBadgeLoveRelayCommandAsync);
+            _playbackBadgeInfoFontIconTappedCommand = new RelayCommand(PlaybackBadgeInfoRelayCommandAsync);
+
+
             AppConstants.Player.BufferingStarted += Player_BufferingStartedAsync;
             AppConstants.Player.BufferingEnded += Player_BufferingEndedAsync;
             AppConstants.Player.MediaOpened += Player_MediaOpenedAsync;
@@ -225,7 +256,7 @@ namespace MonsterCast.ViewModel
                 _navigationViewItem.IsSelected = true;
 
                 _currentNavigationViewItem = _navigationViewItem;
-                HostedFrame.Navigate(args.Content);
+                //HostedFrame.Navigate(args.Content);
             }
            
         }
@@ -353,6 +384,17 @@ namespace MonsterCast.ViewModel
         #endregion
 
         #region RelayCommand_Method
+        private async void PlaybackBadgeInfoRelayCommandAsync()
+        {
+            //var placementElement = PlaybackBadge as Windows.UI.Xaml.FrameworkElement;
+            //await DispatcherHelper.RunAsync(() => PlaybackBadge.ContextFlyout.ShowAt(placementElement));
+        }
+        private async void PlaybackBadgeLoveRelayCommandAsync()
+        {
+            //var placementElement = PlaybackBadge as Windows.UI.Xaml.FrameworkElement;
+            //await DispatcherHelper.RunAsync(() => PlaybackBadge.ContextFlyout.ShowAt(placementElement));
+        }
+
 
         private async void PlaybackBadgeRelayCommandAsync()
         {

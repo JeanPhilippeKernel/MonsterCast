@@ -14,6 +14,7 @@ using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 
@@ -24,6 +25,7 @@ namespace MonsterCast.ViewModel
         #region Fields
         private readonly RelayCommand<RangeBaseValueChangedEventArgs> _scrollerBarValueChangedCommand = null;
         private readonly RelayCommand<ItemClickEventArgs> _castItemClickCommand = null;
+        private readonly RelayCommand<TappedRoutedEventArgs> _castItemTappedCommand = null;
         private readonly RelayCommand _playCommand = null;
         private readonly RelayCommand _loveCommand = null;
         
@@ -56,6 +58,7 @@ namespace MonsterCast.ViewModel
         #region Properties
         public RelayCommand<RangeBaseValueChangedEventArgs> ScrollerBarValueChangedCommand => _scrollerBarValueChangedCommand;
         public RelayCommand<ItemClickEventArgs> CastItemClickCommand => _castItemClickCommand;
+        public RelayCommand<TappedRoutedEventArgs> CastItemTappedCommand => _castItemTappedCommand;
         public RelayCommand PlayCommand => _playCommand;
         public RelayCommand LoveCommand => _loveCommand;
         //public IEnumerable<Cast> NextCurrentCollection
@@ -78,7 +81,7 @@ namespace MonsterCast.ViewModel
         public ObservableCollection<Cast> ShowedCollection
         {
             get { return _showedCollection; }
-            set { Set(ref _showedCollection, value); }
+            set { Set(() => ShowedCollection, ref _showedCollection, value); }
         }
 
         public Cast CurrentCast
@@ -153,6 +156,7 @@ namespace MonsterCast.ViewModel
 
             _scrollerBarValueChangedCommand = new RelayCommand<RangeBaseValueChangedEventArgs>(ScrollerBarValueChangedAction);
             _castItemClickCommand = new RelayCommand<ItemClickEventArgs>(CastItemClickAction);
+            _castItemTappedCommand = new RelayCommand<TappedRoutedEventArgs>(CastItemTappedAction);
             _playCommand = new RelayCommand(PlayRelayCommand);
             _loveCommand = new RelayCommand(LoveRelayCommand);
         }
@@ -188,17 +192,19 @@ namespace MonsterCast.ViewModel
                 });
                 Task.Run(() =>
                 {
-                    DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                    DispatcherHelper.CheckBeginInvokeOnUI(async () =>
                     {
                         ShowedCollection.Clear();
+                        await Task.Delay(150);
                         _showedCollectionIndex = 0;
-                        int length = SplitedCollection.ElementAt(0).Count;
-                        var datas = SplitedCollection.ElementAt(_showedCollectionIndex);
+                        var datas = SplitedCollection.ElementAt(0);
+                        int length = datas.Count;
                         
                         for (int i = 0; i < length; i++)
                             ShowedCollection.Add(datas.ElementAt(i));
                     });
                 });
+
                 //Task.Run( () =>
                 //{
                 //    DispatcherHelper.RunAsync(() =>
@@ -333,20 +339,32 @@ namespace MonsterCast.ViewModel
 
         private void CastItemClickAction(ItemClickEventArgs e)
         {
-            var clickedCast = e.ClickedItem as Cast;
-            var pageType = typeof(CastDetailView);
-            _messenger.Send(new GenericMessage<Type>(pageType), Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION);
-
-            _messenger.Send<GenericMessage<Cast>, CastDetailViewModel>(new GenericMessage<Cast>(clickedCast));
+            
+            //var clickedCast = e.ClickedItem as Cast;
+            //var pageType = typeof(CastDetailView);
+            //_messenger.Send(new GenericMessage<Type>(pageType), Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION);
+                                                    
+            //_messenger.Send<GenericMessage<Cast>, CastDetailViewModel>(new GenericMessage<Cast>(clickedCast));
         }
 
+        private void CastItemTappedAction(TappedRoutedEventArgs e)
+        {
+            var originalSource = e.OriginalSource as FrameworkElement;
+            var templateLayout = originalSource.FindName("ContainerRoot");
+            if(templateLayout != null)
+            {
+                var grid = templateLayout as Grid;
+                grid.ContextFlyout.ShowAt(originalSource);
+            }
+        }
         private void ScrollerBarValueChangedAction(RangeBaseValueChangedEventArgs args)
         {
             if (ContentRoot.ItemsSource != null)
             {
                 //Todo : send message to change the content overlay of navigationView
 
-                if (/*ScrollerView.VerticalOffset*/ args.NewValue >= ScrollerView.ScrollableHeight)
+                 double result = args.NewValue - ScrollerView.ScrollableHeight;
+                if (/*ScrollerView.VerticalOffset*/ result >= -200.0)
                 {
                     //var element = ContentRoot.Children
                     //.Where(item => item.Visibility == Visibility.Collapsed)
@@ -361,10 +379,9 @@ namespace MonsterCast.ViewModel
                         Task.Run(() =>
                         {
                             DispatcherHelper.CheckBeginInvokeOnUI(() =>
-                            {
-                                
-                                int length = SplitedCollection.ElementAt(_showedCollectionIndex).Count;
+                            {    
                                 var datas = SplitedCollection.ElementAt(_showedCollectionIndex);
+                                int length = datas.Count;
 
                                 for (int i = 0; i < length; i++)
                                     ShowedCollection.Add(datas.ElementAt(i));

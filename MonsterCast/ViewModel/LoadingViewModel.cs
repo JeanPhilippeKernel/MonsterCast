@@ -88,7 +88,6 @@ namespace MonsterCast.ViewModel
                             Messenger.Send<NotificationMessage, DefaultViewModel>(new NotificationMessage(Core.Enumeration.Message.NOTIFICATION_PODCAST_HAS_BEEN_SET));                          
                             NavigationService.NavigateTo(ViewModelLocator.MainViewKey);
                         });
-
                     }, TaskContinuationOptions.OnlyOnRanToCompletion);                                 
                 }
                 catch (Exception e)
@@ -98,7 +97,7 @@ namespace MonsterCast.ViewModel
                     if(e.HResult == -2146233029)
                     {
                         await DialogService.ShowError(
-                            "Oop! Something went wrong... click on retry",
+                            "Oop! Something went wrong, we were unable to get podcast's data... Click on retry",
                             "Humm... :(", "Retry",
                             () => FetchingAllCasts());
                     }
@@ -144,6 +143,7 @@ namespace MonsterCast.ViewModel
                         }
                         _progressCount++;
                     }
+
                     //foreach (var item in _collection)
                     //{
                     //    var newCast = new Cast

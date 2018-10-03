@@ -189,9 +189,53 @@
                     </StackPanel>
                     <Button.ContextFlyout>
                         <Flyout LightDismissOverlayMode="Off">
-                          
-                            <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                            <Flyout.FlyoutPresenterStyle>
+                                <Style TargetType="FlyoutPresenter">
+                                    <Setter Property="Background" >
+                                        <Setter.Value>
+                                            <AcrylicBrush BackgroundSource="HostBackdrop" TintColor="White" TintOpacity="0.1" FallbackColor="White" />
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    
+                                </Style>
+                            </Flyout.FlyoutPresenterStyle>
+                            <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Height="200" Width="200" MaxHeight="312" MaxWidth="312">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition MinHeight="200"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
                                 
+                                <Image Grid.Row="0"  VerticalAlignment="Stretch" 
+                                       HorizontalAlignment="Stretch" 
+                                       Stretch="UniformToFill" Source="{Binding ActiveMedia.Address}"/>
+                                
+                                <Grid Grid.Row="0" VerticalAlignment="Bottom" Height="40"
+                                      HorizontalAlignment="Stretch">
+                                    <Grid.Background>
+                                        <SolidColorBrush Opacity="0.7" Color="Black"/>
+                                    </Grid.Background>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <FontIcon x:Name="PlaybackLoveButton" Width="25" Margin="10" 
+                                                  HorizontalAlignment="Left" Foreground="White"
+                                                  FontFamily="Segoe MDL2 Assets" Glyph="&#xEB51;" FontWeight="Bold">
+                                            <Interactivity:Interaction.Behaviors>
+                                                <Core:EventTriggerBehavior EventName="Tapped">
+                                                    <Core:InvokeCommandAction Command="{Binding PlaybackBadgeLoveFontIconTappedCommand}"/>
+                                                </Core:EventTriggerBehavior>
+                                            </Interactivity:Interaction.Behaviors>
+                                        </FontIcon>
+                                        <FontIcon x:Name="PlaybackInfoButton" Width="25" Margin="10" 
+                                                  HorizontalAlignment="Right" Foreground="White"
+                                                  FontFamily="Segoe MDL2 Assets" Glyph="&#xE946;" FontWeight="Bold">
+                                            <Interactivity:Interaction.Behaviors>
+                                                <Core:EventTriggerBehavior EventName="Tapped">
+                                                    <Core:InvokeCommandAction Command="{Binding PlaybackBadgeInfoFontIconTappedCommand}"/>
+                                                </Core:EventTriggerBehavior>
+                                            </Interactivity:Interaction.Behaviors>
+                                        </FontIcon>
+                                    </StackPanel>
+                                </Grid>
                             </Grid>
                         </Flyout>
                     </Button.ContextFlyout>
