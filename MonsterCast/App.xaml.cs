@@ -1,5 +1,6 @@
 ﻿using CommonServiceLocator;
 using GalaSoft.MvvmLight.Ioc;
+using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
 using GalaSoft.MvvmLight.Views;
 using MonsterCast.Helper;
@@ -15,6 +16,9 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 
+using MonsterCast.Core.Database;
+using MonsterCast.Manager;
+
 namespace MonsterCast
 {
     /// <summary>
@@ -28,8 +32,12 @@ namespace MonsterCast
         /// </summary>
         public  App()
         {
+            ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
+
             var navigationService = new NavigationService();
             SimpleIoc.Default.Register<INavigationService>(() => navigationService);
+            SimpleIoc.Default.Register<IMessenger, Messenger>(true);
+
 
             navigationService.Configure(ViewModelLocator.MainViewKey, typeof(MainView));
             navigationService.Configure(ViewModelLocator.FavoriteCastViewKey, typeof(FavoriteCastView));
@@ -41,12 +49,17 @@ namespace MonsterCast
             navigationService.Configure(ViewModelLocator.NowPlayingViewKey, typeof(NowPlayingView));
            
             SimpleIoc.Default.Register<IDialogService, DialogService>();
-            SimpleIoc.Default.Register<Core.Database.IMonsterDatabase, Core.Database.MonsterDatabase>(true);
+
+            SimpleIoc.Default.Register<IMonsterDatabase, MonsterDatabase>(true);
+            SimpleIoc.Default.Register<MediaPlayerManager>(true);
+           
 
             this.InitializeComponent();
             this.Suspending += OnSuspending;
             this.Resuming += OnResuming;
             Construct();
+
+            
         }
 
         

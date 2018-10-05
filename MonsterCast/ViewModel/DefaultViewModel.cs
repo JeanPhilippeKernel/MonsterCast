@@ -2,6 +2,7 @@
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
+using MonsterCast.Core.Enumeration;
 using MonsterCast.Helper;
 using MonsterCast.Model;
 using MonsterCast.View;
@@ -17,6 +18,7 @@ using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
+using MonsterCast.Core.Database;
 
 namespace MonsterCast.ViewModel
 {
@@ -28,7 +30,10 @@ namespace MonsterCast.ViewModel
         private readonly RelayCommand<TappedRoutedEventArgs> _castItemTappedCommand = null;
         private readonly RelayCommand _playCommand = null;
         private readonly RelayCommand _loveCommand = null;
-        
+
+        private readonly RelayCommand _playbackPlayCommand = null;
+        private readonly RelayCommand _playbackLoveCommand = null;
+
         //private IEnumerable<Cast> _nextCurrentCollection = null;
         private IEnumerable<Cast> _podcastCollection = null;
         private IEnumerable<IList<Cast>> _splitedCollection = null;
@@ -37,6 +42,7 @@ namespace MonsterCast.ViewModel
         private int _showedCollectionIndex = 0;
         private int _splitedCollectionLength = 0;
         private Cast _currentCast = null;
+        private Cast _castItemClicked = null;
         private IMessenger _messenger = null;
         private Core.Database.IMonsterDatabase _dbConn = null;
 
@@ -52,6 +58,9 @@ namespace MonsterCast.ViewModel
         private TextBlock _loveButtonTitle = null;
 
 
+        private Grid _playbackBadge = null;
+
+
         private bool _isLoading = false;
         #endregion
 
@@ -61,6 +70,9 @@ namespace MonsterCast.ViewModel
         public RelayCommand<TappedRoutedEventArgs> CastItemTappedCommand => _castItemTappedCommand;
         public RelayCommand PlayCommand => _playCommand;
         public RelayCommand LoveCommand => _loveCommand;
+
+        public RelayCommand PlaybackPlayCommand => _playbackPlayCommand;
+        public RelayCommand PlaybackLoveCommand => _playbackLoveCommand;
         //public IEnumerable<Cast> NextCurrentCollection
         //{
         //    get { return _nextCurrentCollection; }
@@ -88,6 +100,12 @@ namespace MonsterCast.ViewModel
         {
             get { return _currentCast; }
             set { Set(ref _currentCast, value); }
+        }
+
+        public Cast CastItemClicked
+        {
+            get { return _castItemClicked; }
+            set { Set( () => CastItemClicked, ref _castItemClicked, value); }
         }
 
         public ScrollViewer ScrollerView
@@ -138,27 +156,50 @@ namespace MonsterCast.ViewModel
             set { Set(ref _loveButtonTitle, value); }
         }
 
+        public Grid PlaybackBadge
+        {
+            get { return _playbackBadge; }
+            set { Set(ref _playbackBadge, value); }
+        }
+
         public bool IsLoading
         {
             get { return _isLoading; }
             set { Set(ref _isLoading, value); }
         }
         #endregion
-        public DefaultViewModel(IMessenger messenger, Core.Database.IMonsterDatabase dbConnexion)
+        public DefaultViewModel(IMessenger messenger, IMonsterDatabase dbConnexion)
         {
 
             _messenger = messenger;
             _dbConn = dbConnexion;
             _showedCollection = new ObservableCollection<Cast>();
 
-            messenger.Register<NotificationMessage>(this, MessengerAction);
-            messenger.Register<NotificationMessage>(this, ViewBuiltNotificationAction);
+            _messenger.Register<NotificationMessage>(this, MessengerAction);
+            _messenger.Register<NotificationMessage>(this, ViewBuiltNotificationAction);
+            _messenger.Register<GenericMessage<Cast>>(this, Message.REQUEST_VIEW_UPDATE_PLAYBACK_BADGE, UpdateViewPlaybackBadgeRequestAction);
+
 
             _scrollerBarValueChangedCommand = new RelayCommand<RangeBaseValueChangedEventArgs>(ScrollerBarValueChangedAction);
             _castItemClickCommand = new RelayCommand<ItemClickEventArgs>(CastItemClickAction);
             _castItemTappedCommand = new RelayCommand<TappedRoutedEventArgs>(CastItemTappedAction);
+
             _playCommand = new RelayCommand(PlayRelayCommand);
             _loveCommand = new RelayCommand(LoveRelayCommand);
+
+            _playbackPlayCommand = new RelayCommand(PlaybackPlayRelayCommand);
+            _playbackLoveCommand = new RelayCommand(PlaybackLoveRelayCommand);
+        }
+
+        private void UpdateViewPlaybackBadgeRequestAction(GenericMessage<Cast> args)
+        {
+            //throw new NotImplementedException();
+            DispatcherHelper.CheckBeginInvokeOnUI(() =>
+            {
+               
+                CurrentCast = args.Content;              
+                PlaybackBadge.Visibility = Visibility.Visible;
+            });
         }
 
 
@@ -273,7 +314,15 @@ namespace MonsterCast.ViewModel
         #endregion
 
         #region RelayCommand_Method
+        private  void PlaybackPlayRelayCommand()
+        {
+            _messenger.Send(new GenericMessage<Cast>(CastItemClicked), Message.REQUEST_MEDIAPLAYER_PLAY_SONG);
+        }
 
+        private async void PlaybackLoveRelayCommand()
+        {
+            
+        }
         private async void LoveRelayCommand()
         {
             var _isLoved = await _dbConn.IsAlreadyExist<Cast>(c => c.Title == CurrentCast.Title);
@@ -340,10 +389,11 @@ namespace MonsterCast.ViewModel
         private void CastItemClickAction(ItemClickEventArgs e)
         {
             
-            //var clickedCast = e.ClickedItem as Cast;
+            var clickedCast = e.ClickedItem as Cast;
+            CastItemClicked = clickedCast;
             //var pageType = typeof(CastDetailView);
             //_messenger.Send(new GenericMessage<Type>(pageType), Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION);
-                                                    
+
             //_messenger.Send<GenericMessage<Cast>, CastDetailViewModel>(new GenericMessage<Cast>(clickedCast));
         }
 
@@ -354,7 +404,27 @@ namespace MonsterCast.ViewModel
             if(templateLayout != null)
             {
                 var grid = templateLayout as Grid;
+                var frameworkElement = ((Flyout)grid.ContextFlyout).Content as FrameworkElement;
+
+                var playFontIcon = frameworkElement.FindName("PlaybackPlayButton") as FontIcon;
+                var loveFontIcon = frameworkElement.FindName("PlaybackLoveButton") as FontIcon;
+                var infoFontIcon = frameworkElement.FindName("PlaybackInfoButton") as FontIcon;
+
+
+                var triggerForLoveIcon = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "Tapped" };
+                var actionForLoveIcon = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = PlaybackLoveCommand };
+
+                var triggerForPlayIcon = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "Tapped" };
+                var actionForPlayIcon = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = PlaybackPlayCommand };
+
+                triggerForLoveIcon.Actions.Add(actionForLoveIcon);
+                triggerForLoveIcon.Attach(loveFontIcon);
+
+                triggerForPlayIcon.Actions.Add(actionForPlayIcon);
+                triggerForPlayIcon.Attach(playFontIcon);
+
                 grid.ContextFlyout.ShowAt(originalSource);
+                
             }
         }
         private void ScrollerBarValueChangedAction(RangeBaseValueChangedEventArgs args)

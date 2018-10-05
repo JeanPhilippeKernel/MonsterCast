@@ -16,6 +16,8 @@ using System.Diagnostics;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
 using System.Linq;
+using MonsterCast.Core.Enumeration;
+using MonsterCast.Manager;
 
 namespace MonsterCast.ViewModel
 {
@@ -36,8 +38,7 @@ namespace MonsterCast.ViewModel
         private readonly RelayCommand _playbackBadgeInfoFontIconTappedCommand = null;
         private readonly RelayCommand _playbackBadgeLoveFontIconTappedCommand = null;  
         
-
-        private IMessenger _messenger = null;
+        private IMessenger _messenger = null;       
 
         private Cast _activeMedia = null;
         private string _currentMediaStartTime = "00:00:00";
@@ -67,6 +68,7 @@ namespace MonsterCast.ViewModel
         #endregion
 
         #region Properties
+
         public RelayCommand<Microsoft.UI.Xaml.Controls.NavigationViewItemInvokedEventArgs> InvokedMenuItemCommand => _invokedMenuItemCommand;       
         public RelayCommand<ItemClickEventArgs> OptionalMenuItemCommand => _optionalMenuItemCommand;
         public RelayCommand<ManipulationCompletedRoutedEventArgs> ThumbManipulationCompletedCommand => _thumbManipulationCompletedCommand;
@@ -121,7 +123,9 @@ namespace MonsterCast.ViewModel
             {
                 double newValue = (value / 100.0);
                 Set(() => Volume, ref _volume, newValue);
-                AppConstants.Player.Volume = _volume;
+                //AppConstants.Player.Volume = _volume;
+
+                _messenger.Send(new GenericMessage<double>(_volume), Message.REQUEST_MEDIAPLAYER_UPDATE_VOLUME);
             }
         }
 
@@ -196,25 +200,41 @@ namespace MonsterCast.ViewModel
             set { Set(() => PlaybackBadgeInfoFontIcon, ref _playbackBadgeInfoFontIcon, value); }
         }
 
-
-        
-
         public bool IsBackButtonEnable
         {
             get { return _isBackButtonEnable; }
             set { Set(() => IsBackButtonEnable, ref _isBackButtonEnable, value); }
         }
+
+        public delegate void NotificationCallback(bool value);
+        public NotificationCallback _notificationMessageCallback { get; set; }
         #endregion
 
         public MainViewModel(IMessenger messenger)
         {            
             _messenger = messenger;
-            _messenger.Register<NotificationMessage<Type>>(this, ViewBuiltNotificationAction);
-            _messenger.Register<GenericMessage<Type>>(this, Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION, NavigationViewRequestAction);
-            _messenger.Register<GenericMessage<Cast>>(this, Core.Enumeration.Message.REQUEST_MEDIAPLAYER_PLAY_SONG, PlayRequestAction);
-            _messenger.Register<GenericMessage<Cast>>(this, Core.Enumeration.Message.REQUEST_MEDIAPLAYER_PAUSE_SONG, PauseRequestAction);
-            _messenger.Register<NotificationMessage<Cast>>(this, Core.Enumeration.Message.REQUEST_SET_NAVIGATIONVIEW_CONTENTOVERLAY, SetNavigationViewContentOverlay);
+            _notificationMessageCallback = this.MediaPlayerPlaybackCallback;
 
+            _messenger.Register<NotificationMessage<Type>>(this, ViewBuiltNotificationAction);
+            _messenger.Register<GenericMessage<Type>>(this, Message.REQUEST_VIEW_NAVIGATION, NavigationViewRequestAction);        
+            _messenger.Register<GenericMessage<Cast>>(this, Message.REQUEST_VIEW_UPDATE_PLAYBACK_BADGE, UpdateViewPlaybackBadgeRequestAction);        
+            _messenger.Register<NotificationMessage<Cast>>(this, Message.REQUEST_SET_NAVIGATIONVIEW_CONTENTOVERLAY, SetNavigationViewContentOverlay);
+
+            _messenger.Register<NotificationMessage<TimeSpan>>(this, Message.MEDIAPLAYER_MEDIA_OPENED, MediaOpenedAction);
+            _messenger.Register<NotificationMessage>(this, Message.MEDIAPLAYER_MEDIA_ENDED, MediaEndedAction);
+            _messenger.Register<NotificationMessage>(this, Message.MEDIAPLAYER_MEDIA_FAILED, MediaFailedAction);
+
+            _messenger.Register<NotificationMessage>(this, Message.MEDIAPLAYER_MEDIA_BUFFERING_STARTED, MediaBufferingStartedAction);
+            _messenger.Register<NotificationMessage>(this, Message.MEDIAPLAYER_MEDIA_BUFFERING_ENDED, MediaBufferingEndedAction);
+            _messenger.Register<NotificationMessage>(this, Message.MEDIAPLAYER_SOURCE_CHANGED, MediaSourceChangedAction);
+
+            _messenger.Register<NotificationMessage>(this, Message.MEDIAPLAYER_PLAYBACK_STATE_OPENING, PlaybackStateOpeningAction);
+            _messenger.Register<NotificationMessage<TimeSpan>>(this, Message.MEDIAPLAYER_PLAYBACK_STATE_BUFFERING, PlaybackStateBufferingAction);
+            _messenger.Register<NotificationMessage>(this, Message.MEDIAPLAYER_PLAYBACK_STATE_PLAYING, PlaybackStatePlayingAction);
+            _messenger.Register<NotificationMessage>(this, Message.MEDIAPLAYER_PLAYBACK_STATE_PAUSED, PlaybackStatePausedAction);
+            _messenger.Register<NotificationMessage<TimeSpan>>(this, Message.MEDIAPLAYER_PLAYBACK_POSITION_CHANGED, PlaybackPositionChangedAction);
+
+            _messenger.Send(new GenericMessage<double>(_volume), Message.REQUEST_MEDIAPLAYER_UPDATE_VOLUME);
             
             _invokedMenuItemCommand = new RelayCommand<Microsoft.UI.Xaml.Controls.NavigationViewItemInvokedEventArgs>(InvokedMenuItemRelayCommand);
             _optionalMenuItemCommand = new RelayCommand<ItemClickEventArgs>(OptionalRelayCommandHandler);
@@ -231,25 +251,153 @@ namespace MonsterCast.ViewModel
             _playbackBadgeLoveFontIconTappedCommand = new RelayCommand(PlaybackBadgeLoveRelayCommandAsync);
             _playbackBadgeInfoFontIconTappedCommand = new RelayCommand(PlaybackBadgeInfoRelayCommandAsync);
 
+            
 
-            AppConstants.Player.BufferingStarted += Player_BufferingStartedAsync;
-            AppConstants.Player.BufferingEnded += Player_BufferingEndedAsync;
-            AppConstants.Player.MediaOpened += Player_MediaOpenedAsync;
-            AppConstants.Player.MediaEnded += Player_MediaEndedAsync;
-            AppConstants.Player.MediaFailed += Player_MediaFailed;
-            AppConstants.Player.SourceChanged += Player_SourceChangedAsync;
-            AppConstants.Player.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChangedAsync;
-            AppConstants.Player.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChangedAsync_2;
-            AppConstants.Player.Volume = _volume;           
+             
+            //AppConstants.Player.BufferingStarted += Player_BufferingStartedAsync;
+            //AppConstants.Player.BufferingEnded += Player_BufferingEndedAsync;
+            //AppConstants.Player.MediaOpened += Player_MediaOpenedAsync;
+            //AppConstants.Player.MediaEnded += Player_MediaEndedAsync;
+            //AppConstants.Player.MediaFailed += Player_MediaFailed;
+            //AppConstants.Player.SourceChanged += Player_SourceChangedAsync;
+            //AppConstants.Player.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChangedAsync;
+            //AppConstants.Player.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChangedAsync_2;
+            //AppConstants.Player.Volume = _volume;           
         }
 
         
+
+        private void MediaOpenedAction(NotificationMessage<TimeSpan> args)
+        {
+            if(args.Notification == Message.MEDIAPLAYER_MEDIA_OPENED)
+            {
+                DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                {
+                    IsBufferingProgress = true;
+                    PositionMax = args.Content.TotalSeconds;
+                    CurrentMediaEndTime = args.Content.ToString(@"hh\:mm\:ss");
+                });
+            }
+        }
+
+        private void MediaEndedAction(NotificationMessage args)
+        {
+            if (args.Notification == Message.MEDIAPLAYER_MEDIA_ENDED)
+            {
+
+                DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                {
+
+                    PositionValue = 0;
+                    PositionMax = 0;
+                    CurrentMediaEndTime = "00:00:00";
+                    CurrentMediaStartTime = "00:00:00";
+                });
+
+                //_messenger.Send(new NotificationMessage("media ended"), Message.MEDIAPLAYER_PLAY_END_PLAYING);
+            }
+        }
+
+        private void MediaFailedAction(NotificationMessage args)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void MediaBufferingStartedAction(NotificationMessage args)
+        {
+            //throw new NotImplementedException();
+            if(args.Notification == Message.MEDIAPLAYER_MEDIA_BUFFERING_STARTED)
+            {
+                DispatcherHelper.CheckBeginInvokeOnUI(() => IsBufferingProgress = true);
+            }
+        }
+
+        private void MediaBufferingEndedAction(NotificationMessage args)
+        {
+            if (args.Notification == Message.MEDIAPLAYER_MEDIA_BUFFERING_ENDED)
+            {
+                DispatcherHelper.CheckBeginInvokeOnUI(() => IsBufferingProgress = false);
+            }
+            
+        }
+
+        private void MediaSourceChangedAction(NotificationMessage args)
+        {
+            //throw new NotImplementedException();
+            if(args.Notification == Message.MEDIAPLAYER_SOURCE_CHANGED)
+            {
+                DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                {
+                    PositionValue = 0;
+                    PositionMax = 0;
+                    CurrentMediaEndTime = "00:00:00";
+                    CurrentMediaStartTime = "00:00:00";
+                });
+            }
+        }
+
+
+        private void PlaybackStatePausedAction(NotificationMessage args)
+        {
+            //throw new NotImplementedException();
+            if (args.Notification == Message.MEDIAPLAYER_PLAYBACK_STATE_PAUSED)
+            {
+                DispatcherHelper.CheckBeginInvokeOnUI(() => PlayFontIcon.Glyph = "\uE768");
+            }
+        }
+
+        private void PlaybackStatePlayingAction(NotificationMessage args)
+        {
+            //throw new NotImplementedException();
+            if (args.Notification == Message.MEDIAPLAYER_PLAYBACK_STATE_PLAYING)
+            {
+                DispatcherHelper.CheckBeginInvokeOnUI(() => PlayFontIcon.Glyph = "\uE769");
+            }
+            
+        }
+
+        private void PlaybackStateBufferingAction(NotificationMessage<TimeSpan> args)
+        {
+            //throw new NotImplementedException();
+            if (args.Notification == Message.MEDIAPLAYER_PLAYBACK_STATE_BUFFERING)
+            {
+                DispatcherHelper.CheckBeginInvokeOnUI(() => PositionMax = args.Content.TotalSeconds);
+            }
+        }
+
+        private void PlaybackStateOpeningAction(NotificationMessage args)
+        {
+            //throw new NotImplementedException();
+            if (args.Notification == Message.MEDIAPLAYER_PLAYBACK_STATE_OPENING)
+            {
+                //PositionMax = args.Content.TotalSeconds;
+                DispatcherHelper.CheckBeginInvokeOnUI(() => IsBufferingProgress = true);
+            }
+
+        }
+
+        private void PlaybackPositionChangedAction(NotificationMessage<TimeSpan> args)
+        {
+           if(args.Notification ==  Message.MEDIAPLAYER_PLAYBACK_POSITION_CHANGED)
+            {
+                DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                {
+                    PositionValue = args.Content.TotalSeconds;
+                    CurrentMediaStartTime = args.Content.ToString(@"hh\:mm\:ss");
+                });
+            }
+        }
+
+
+
+
+
 
 
         #region Messenger_Method
         private void ViewBuiltNotificationAction(NotificationMessage<Type> args)
         {
-            if(args.Notification == Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT)
+            if(args.Notification == Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT)
             {
                
                 var _navigationViewItem = ((IList<Microsoft.UI.Xaml.Controls.NavigationViewItem>)MainNavigationView.MenuItemsSource).Single(e => (Type)e.Tag == args.Content);
@@ -261,9 +409,15 @@ namespace MonsterCast.ViewModel
            
         }
 
+        private void UpdateViewPlaybackBadgeRequestAction(GenericMessage<Cast> args)
+        {
+            DispatcherHelper.CheckBeginInvokeOnUI(() => ActiveMedia = args.Content);
+        }
+
         private void PlayRequestAction(GenericMessage<Cast> args)
         {
             ActiveMedia = args.Content;
+            
             AppConstants.Player.Source = MediaSource.CreateFromUri(new Uri(args.Content.Song, UriKind.Absolute));
             AppConstants.Player.Play();
         }
@@ -286,6 +440,7 @@ namespace MonsterCast.ViewModel
         #endregion
 
         #region MediaPlayer_Method
+
         private async void PlaybackSession_PlaybackStateChangedAsync(MediaPlaybackSession sender, object args)
         {
             Debug.WriteLine($"playback changed : {sender.PlaybackState.ToString()}");
@@ -352,7 +507,7 @@ namespace MonsterCast.ViewModel
                 CurrentMediaEndTime = "00:00:00";
                 CurrentMediaStartTime = "00:00:00";
 
-                _messenger.Send(new NotificationMessage("media ended"), Core.Enumeration.Message.MEDIAPLAYER_PLAY_END_PLAYING);
+                //_messenger.Send(new NotificationMessage("media ended"), Message.MEDIAPLAYER_PLAY_END_PLAYING);
             });
         }
 
@@ -364,7 +519,7 @@ namespace MonsterCast.ViewModel
                 PositionMax = sender.PlaybackSession.NaturalDuration.TotalSeconds;
                 CurrentMediaEndTime = sender.PlaybackSession.NaturalDuration.ToString(@"hh\:mm\:ss");
 
-                _messenger.Send(new GenericMessage<Cast>(ActiveMedia), Core.Enumeration.Message.MEDIAPLAYER_PLAY_NOW_PLAYING);
+                //_messenger.Send(new GenericMessage<Cast>(ActiveMedia), Message.MEDIAPLAYER_PLAY_NOW_PLAYING);
             });
                                            
             sender.PlaybackSession.PositionChanged -= PlaybackSession_PositionChangedAsync;
@@ -413,17 +568,35 @@ namespace MonsterCast.ViewModel
         }
 
 
-        private async void PlayFontIconTappedRelayCommand(TappedRoutedEventArgs args)
+        private void PlayFontIconTappedRelayCommand(TappedRoutedEventArgs args)
         {
-            if (AppConstants.Player.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
+            if (ActiveMedia != null)
+                _messenger.Send(new NotificationMessageWithCallback(Message.IS_MEDIAPLAYER_PLAYBACK_STATE_PLAYING, _notificationMessageCallback), Message.IS_MEDIAPLAYER_PLAYBACK_STATE_PLAYING);
+
+
+            //if (AppConstants.Player.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
+            //{
+            //    AppConstants.Player.Play();
+            //    await DispatcherHelper.RunAsync(() => PlayFontIcon.Glyph = "\uE769");
+            //}
+            //else if (AppConstants.Player.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
+            //{
+            //    AppConstants.Player.Pause();
+            //    await DispatcherHelper.RunAsync(() => PlayFontIcon.Glyph = "\uE768");               
+            //}
+        }
+
+        public void MediaPlayerPlaybackCallback(bool result)
+        {
+           if(result)
             {
-                AppConstants.Player.Play();
-                await DispatcherHelper.RunAsync(() => PlayFontIcon.Glyph = "\uE769");
+                _messenger.Send(new NotificationMessage(Message.REQUEST_MEDIAPLAYER_PAUSE_SONG), Message.REQUEST_MEDIAPLAYER_PAUSE_SONG);
+               DispatcherHelper.CheckBeginInvokeOnUI(() => PlayFontIcon.Glyph = "\uE768");
             }
-            else if (AppConstants.Player.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
+            else
             {
-                AppConstants.Player.Pause();
-                await DispatcherHelper.RunAsync(() => PlayFontIcon.Glyph = "\uE768");               
+                _messenger.Send(new NotificationMessage(Message.REQUEST_MEDIAPLAYER_RESUME_SONG), Message.REQUEST_MEDIAPLAYER_RESUME_SONG);
+                DispatcherHelper.CheckBeginInvokeOnUI(() => PlayFontIcon.Glyph = "\uE769");
             }
         }
 
@@ -475,7 +648,7 @@ namespace MonsterCast.ViewModel
 
             var navigationViewItem = MenuItemCollection.Single(e => (string)e.Content == (string)args.InvokedItem);
             var pageType = navigationViewItem.Tag as Type;
-            _messenger.Send(new GenericMessage<Type>(pageType), Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION);
+            _messenger.Send(new GenericMessage<Type>(pageType), Message.REQUEST_VIEW_NAVIGATION);
 
             _currentNavigationViewItem = navigationViewItem;
 
@@ -501,7 +674,7 @@ namespace MonsterCast.ViewModel
             var navigationViewItem = paneFooterCollection.Single(e => (string)e.Content == (string)args.ClickedItem);
             navigationViewItem.IsSelected = true;
             var pageType = navigationViewItem.Tag as Type;
-            _messenger.Send(new GenericMessage<Type>(pageType), Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION);
+            _messenger.Send(new GenericMessage<Type>(pageType), Message.REQUEST_VIEW_NAVIGATION);
 
             _currentNavigationViewItem = navigationViewItem;
         }

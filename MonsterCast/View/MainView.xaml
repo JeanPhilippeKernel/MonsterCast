@@ -197,6 +197,7 @@
                                         </Setter.Value>
                                     </Setter>
                                     <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Padding" Value="3"/>
                                     
                                 </Style>
                             </Flyout.FlyoutPresenterStyle>
@@ -241,6 +242,8 @@
                     </Button.ContextFlyout>
                 </Button>
             </Grid>
+            
+                       
         </Grid>
     </Grid>
 </Page>

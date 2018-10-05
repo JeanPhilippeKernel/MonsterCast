@@ -117,7 +117,7 @@
             </StackPanel>
 
             <Grid.ContextFlyout>
-                <Flyout LightDismissOverlayMode="Off" Placement="Right" >
+                <Flyout LightDismissOverlayMode="Off" Placement="Right">
                     <Flyout.FlyoutPresenterStyle>
                         <Style TargetType="FlyoutPresenter">
                             <Setter Property="Background" >

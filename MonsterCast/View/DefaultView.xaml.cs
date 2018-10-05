@@ -31,6 +31,7 @@ namespace MonsterCast.View
         public DefaultView()
         {
             this.InitializeComponent();
+            PlaybackBadge.Visibility = Visibility.Collapsed;
            //Scroller.ViewChanged += Scroller_ViewChanged;
 
             _defaultVM = ServiceLocator.Current.GetInstance<DefaultViewModel>();
@@ -43,6 +44,7 @@ namespace MonsterCast.View
             _defaultVM.LoveFontIcon = LoveButton;
             _defaultVM.PlayButtonTitle = PlayButtonTitle;
             _defaultVM.LoveButtonTitle = LoveButtonTitle;
+            _defaultVM.PlaybackBadge = PlaybackBadge;
             
         }
 

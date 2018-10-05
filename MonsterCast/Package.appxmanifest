@@ -34,7 +34,6 @@
   <Capabilities>
     <Capability Name="internetClient" />
     <Capability Name="internetClientServer" />
-    <uap3:Capability Name="remoteSystem" />
     <uap:Capability Name="removableStorage" />
     <uap3:Capability Name="backgroundMediaPlayback" />
   </Capabilities>

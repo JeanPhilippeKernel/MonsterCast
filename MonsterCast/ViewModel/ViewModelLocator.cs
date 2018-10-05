@@ -27,13 +27,12 @@ namespace MonsterCast.ViewModel
         public FavoriteViewModel FavoriteVM => SimpleIoc.Default.GetInstance<FavoriteViewModel>();
         public CastDetailViewModel CastDetailVM => SimpleIoc.Default.GetInstance<CastDetailViewModel>();
         public NowPlayingViewModel NowPlayingVM => SimpleIoc.Default.GetInstance<NowPlayingViewModel>();
+        
         #endregion
 
         static ViewModelLocator()
         {
-            ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
-            SimpleIoc.Default.Register<IMessenger, Messenger>(true);
-           
+            
             //Caching ViewModels Class
             SimpleIoc.Default.Register<LoadingViewModel>();
             SimpleIoc.Default.Register<DefaultViewModel>(true);
@@ -44,6 +43,7 @@ namespace MonsterCast.ViewModel
             SimpleIoc.Default.Register<FavoriteViewModel>();
             SimpleIoc.Default.Register<CastDetailViewModel>(true);
             SimpleIoc.Default.Register<NowPlayingViewModel>(true);
+
         }
 
         public static void UnregisterAndCleanup<T>()

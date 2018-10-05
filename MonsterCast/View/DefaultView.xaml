@@ -19,7 +19,14 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" MinHeight="200">
+
+            <Grid x:Name="PlaybackBadge" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                <Grid.ChildrenTransitions>
+                    <TransitionCollection>
+                        <ContentThemeTransition/>
+                    </TransitionCollection>
+                </Grid.ChildrenTransitions>
+                <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" MinHeight="200">
                 <Grid.Background>
                     <ImageBrush AlignmentX="Center" AlignmentY="Center"
                                 Stretch="UniformToFill" 
@@ -30,7 +37,7 @@
                 </Interactivity:Interaction.Behaviors>
 
             </Grid>
-            <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                   MaxHeight="200">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -74,6 +81,7 @@
                         </Button>
                     </StackPanel>
                 </Grid>
+            </Grid>
             </Grid>
 
             

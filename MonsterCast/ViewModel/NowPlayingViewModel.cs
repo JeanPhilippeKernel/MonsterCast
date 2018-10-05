@@ -8,6 +8,8 @@ using GalaSoft.MvvmLight.Messaging;
 using MonsterCast.Model;
 using System.Diagnostics;
 using Windows.UI.Xaml;
+using MonsterCast.Core.Enumeration;
+using GalaSoft.MvvmLight.Threading;
 
 namespace MonsterCast.ViewModel
 {
@@ -40,21 +42,40 @@ namespace MonsterCast.ViewModel
         public NowPlayingViewModel(IMessenger messenger)
         {
             _messenger = messenger;
-            _messenger.Register<GenericMessage<Cast>>(this, Core.Enumeration.Message.MEDIAPLAYER_PLAY_NOW_PLAYING, NowPlayingAction);
-            _messenger.Register<NotificationMessage>(this, Core.Enumeration.Message.MEDIAPLAYER_PLAY_END_PLAYING, EndPlayingAction);
+            _messenger.Register<GenericMessage<Cast>>(this, Message.REQUEST_VIEW_UPDATE_PLAYBACK_BADGE, UpdateViewPlaybackBadgeRequestAction);
+            _messenger.Register<NotificationMessage>(this, Message.MEDIAPLAYER_MEDIA_ENDED, MediaEndedAction);
+            _messenger.Register<NotificationMessage>(this, Message.MEDIAPLAYER_MEDIA_FAILED, MediaFailedAction);
         }
 
-        private void EndPlayingAction(NotificationMessage obj)
+       
+
+        private void UpdateViewPlaybackBadgeRequestAction(GenericMessage<Cast> args)
         {
-            ShowMask = Visibility.Visible;
-            Playing = null;
+            DispatcherHelper.CheckBeginInvokeOnUI(() =>
+            {
+                ShowMask = Visibility.Collapsed;
+                Playing = args.Content;
+                Debug.WriteLine($"[!] Now playing : {Playing.Title}");
+            });
         }
 
-        private void NowPlayingAction(GenericMessage<Cast> arg)
+        private void MediaEndedAction(NotificationMessage args)
         {
-            ShowMask = Visibility.Collapsed;
-            Playing = arg.Content;
-            Debug.WriteLine($"[!] Now playing : {Playing.Title}");
+            DispatcherHelper.CheckBeginInvokeOnUI(() =>
+            {
+                ShowMask = Visibility.Visible;
+                Playing = null;
+            });
+        }
+
+        private void MediaFailedAction(NotificationMessage args)
+        {
+            DispatcherHelper.CheckBeginInvokeOnUI(() =>
+            {
+                ShowMask = Visibility.Visible;
+                Playing = null;
+            });
+            
         }
     }
 }
