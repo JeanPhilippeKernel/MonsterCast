@@ -1,4 +1,6 @@
-﻿using GalaSoft.MvvmLight.Ioc;
+﻿using CommonServiceLocator;
+using GalaSoft.MvvmLight.Ioc;
+using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
 using GalaSoft.MvvmLight.Views;
 using MonsterCast.Helper;
@@ -14,6 +16,9 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 
+using MonsterCast.Core.Database;
+using MonsterCast.Manager;
+
 namespace MonsterCast
 {
     /// <summary>
@@ -27,8 +32,12 @@ namespace MonsterCast
         /// </summary>
         public  App()
         {
+            ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
+
             var navigationService = new NavigationService();
             SimpleIoc.Default.Register<INavigationService>(() => navigationService);
+            SimpleIoc.Default.Register<IMessenger, Messenger>(true);
+
 
             navigationService.Configure(ViewModelLocator.MainViewKey, typeof(MainView));
             navigationService.Configure(ViewModelLocator.FavoriteCastViewKey, typeof(FavoriteCastView));
@@ -40,19 +49,27 @@ namespace MonsterCast
             navigationService.Configure(ViewModelLocator.NowPlayingViewKey, typeof(NowPlayingView));
            
             SimpleIoc.Default.Register<IDialogService, DialogService>();
-            Helpers.SetDatabaseAsync();
+
+            SimpleIoc.Default.Register<IMonsterDatabase, MonsterDatabase>(true);
+            SimpleIoc.Default.Register<MediaPlayerManager>(true);
+           
 
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            this.Resuming += OnResuming;
             Construct();
+
+            
         }
 
+        
+                              
         /// <summary>
         /// Invoqué lorsque l'application est lancée normalement par l'utilisateur final.  D'autres points d'entrée
         /// seront utilisés par exemple au moment du lancement de l'application pour l'ouverture d'un fichier spécifique.
         /// </summary>
         /// <param name="e">Détails concernant la requête et le processus de lancement.</param>
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
+        protected override async void  OnLaunched(LaunchActivatedEventArgs e)
         {
 #if DEBUG
             if (System.Diagnostics.Debugger.IsAttached)
@@ -60,6 +77,13 @@ namespace MonsterCast
                 this.DebugSettings.EnableFrameRateCounter = true;
             }
 #endif
+
+            var dbConn = SimpleIoc.Default.GetInstance<Core.Database.IMonsterDatabase>();
+            int con = await dbConn.ConnectAsync();
+            if(con == 0)
+            {
+                var created = await dbConn.Database.CreateTableAsync<Cast>();
+            }
 
             Windows.ApplicationModel.Core.CoreApplication.GetCurrentView().TitleBar.ExtendViewIntoTitleBar = true;
 
@@ -102,12 +126,13 @@ namespace MonsterCast
                 }
                 // Vérifiez que la fenêtre actuelle est active
                 Window.Current.Activate();
-
+               
                 //Initialize the DispatcherHelper
                 DispatcherHelper.Initialize();
             }
         }
 
+       
         /// <summary>
         /// Appelé lorsque la navigation vers une page donnée échoue
         /// </summary>
@@ -125,12 +150,19 @@ namespace MonsterCast
         /// </summary>
         /// <param name="sender">Source de la requête de suspension.</param>
         /// <param name="e">Détails de la requête de suspension.</param>
-        private void OnSuspending(object sender, SuspendingEventArgs e)
+        private async void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: enregistrez l'état de l'application et arrêtez toute activité en arrière-plan 
-            Helpers.CloseDbConnection();
+            var dbConn = SimpleIoc.Default.GetInstance<Core.Database.IMonsterDatabase>();
+            await dbConn.CloseAsync();
             deferral.Complete();
+        }
+
+        private async void OnResuming(object sender, object e)
+        {
+            var dbConn = SimpleIoc.Default.GetInstance<Core.Database.IMonsterDatabase>();
+            await dbConn.ConnectAsync();
         }
     }
 }

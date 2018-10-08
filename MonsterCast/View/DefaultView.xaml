@@ -4,13 +4,119 @@
     xmlns:local="using:MonsterCast.View"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:Interactivity="using:Microsoft.Xaml.Interactivity" 
+    xmlns:Behaviors="using:Microsoft.Toolkit.Uwp.UI.Animations.Behaviors"
+    xmlns:Core="using:Microsoft.Xaml.Interactions.Core"
     x:Class="MonsterCast.View.DefaultView"
-    mc:Ignorable="d">
-    <ScrollViewer x:Name="Scroller" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <StackPanel x:Name="ContentRoot" VerticalAlignment="Top"
-                    HorizontalAlignment="Stretch" Orientation="Vertical">
-            <!-- generated content here -->
-        </StackPanel>
+    mc:Ignorable="d" DataContext="{Binding DefaultVM, Source={StaticResource ViewModelLocator}}">
+    
+    <ScrollViewer x:Name="Scroller" 
+                  HorizontalAlignment="Stretch" 
+                  VerticalAlignment="Stretch" 
+                  Loaded="Scroller_Loaded">
+        <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="Transparent">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid x:Name="PlaybackBadge" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                <Grid.ChildrenTransitions>
+                    <TransitionCollection>
+                        <ContentThemeTransition/>
+                    </TransitionCollection>
+                </Grid.ChildrenTransitions>
+                <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" MinHeight="200">
+                <Grid.Background>
+                    <ImageBrush AlignmentX="Center" AlignmentY="Center"
+                                Stretch="UniformToFill" 
+                                ImageSource="{Binding CurrentCast.Address}"/>
+                </Grid.Background>
+                <Interactivity:Interaction.Behaviors>
+                    <Behaviors:Blur AutomaticallyStart="True" Value="10" Duration="250"/>
+                </Interactivity:Interaction.Behaviors>
+
+            </Grid>
+                <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                  MaxHeight="200">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid x:Name="Cover" Grid.Column="0" HorizontalAlignment="Left" 
+                        VerticalAlignment="Stretch" Width="200" >
+                    <Grid.Background>
+                        <ImageBrush AlignmentX="Center" AlignmentY="Center"
+                            Stretch="UniformToFill" 
+                            ImageSource="{Binding CurrentCast.Address}"/>
+                    </Grid.Background>
+                </Grid>
+                <Grid Grid.Column="1"  Margin="20,20,0,0" MaxHeight="200">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="{Binding CurrentCast.Title}" Foreground="White"
+                            FontSize="35px" FontWeight="Bold" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding CurrentCast.Subtitle}"
+                            Foreground="White" FontSize="20px" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel VerticalAlignment="Bottom" Orientation="Horizontal">
+                        <Button Style="{StaticResource CastButtonStyle}" Foreground="White" 
+                                Background="Transparent"          
+                                Margin="20" Width="120" Height="35"
+                                Command="{Binding PlayCommand}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                <FontIcon x:Name="PlayButton" Width="20" FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" Margin="0,0,10,0" FontWeight="Bold"/>
+                                <TextBlock x:Name="PlayButtonTitle" Text="Play" FontWeight="Bold" VerticalAlignment="Center" Width="50"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Foreground="White"
+                                Background="Transparent"                            
+                                Width="120" Height="35"
+                                Style="{StaticResource CastButtonStyle}"
+                                Command="{Binding LoveCommand}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                <FontIcon x:Name="LoveButton" Width="25" FontFamily="Segoe MDL2 Assets" Glyph="&#xEB51;" Margin="0,0,10,0" FontWeight="Bold"/>
+                                <TextBlock x:Name="LoveButtonTitle" Text="Loves it" FontWeight="Bold" VerticalAlignment="Center" Width="65"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+            </Grid>
+
+            
+            <GridView x:Name="ContentRoot" ItemTemplate="{StaticResource GridViewItemTemplateBlack}"
+                      IsItemClickEnabled="True" SelectionMode="None"
+                      ItemsSource="{Binding ShowedCollection}"
+                      Margin="20" Grid.Row="1" VerticalAlignment="top" HorizontalAlignment="Center">
+                <!--<GridView.Transitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                    </TransitionCollection>
+                </GridView.Transitions>-->
+                <Interactivity:Interaction.Behaviors>
+                    <Core:EventTriggerBehavior EventName="ItemClick">
+                        <Core:InvokeCommandAction Command="{Binding CastItemClickCommand}"/>
+                    </Core:EventTriggerBehavior>
+                    <Core:EventTriggerBehavior EventName="Tapped">
+                        <Core:InvokeCommandAction Command="{Binding CastItemTappedCommand}"/>
+                    </Core:EventTriggerBehavior>
+                </Interactivity:Interaction.Behaviors>
+            </GridView>
+            
+            <!--<StackPanel x:Name="ContentRoot" Grid.Row="1" VerticalAlignment="top"
+                    HorizontalAlignment="stretch" Orientation="vertical">
+                --><!--generated content here--><!--
+            </StackPanel>-->
+            <ProgressRing Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" IsActive="{Binding IsLoading}" Foreground="White" Height="50" Width="50"/>
+            <!--<Interactivity:Interaction.Behaviors>
+                <Core:EventTriggerBehavior EventName="ViewChanged">
+                    <Core:InvokeCommandAction Command="{Binding ScrollerViewChangedCommand}"/>
+                </Core:EventTriggerBehavior>
+            </Interactivity:Interaction.Behaviors>-->
+        </Grid>
+
+        
         <!--<StackPanel VerticalAlignment="Top"  
               HorizontalAlignment="Stretch">
             <FlipView HorizontalAlignment="Stretch" 

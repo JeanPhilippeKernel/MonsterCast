@@ -1,14 +1,7 @@
-﻿using GalaSoft.MvvmLight;
+﻿using CommonServiceLocator;
+using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Messaging;
-using GalaSoft.MvvmLight.Views;
-using Microsoft.Practices.ServiceLocation;
-using MonsterCast.View;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonsterCast.ViewModel
 {
@@ -34,13 +27,12 @@ namespace MonsterCast.ViewModel
         public FavoriteViewModel FavoriteVM => SimpleIoc.Default.GetInstance<FavoriteViewModel>();
         public CastDetailViewModel CastDetailVM => SimpleIoc.Default.GetInstance<CastDetailViewModel>();
         public NowPlayingViewModel NowPlayingVM => SimpleIoc.Default.GetInstance<NowPlayingViewModel>();
+        
         #endregion
 
         static ViewModelLocator()
         {
-            ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
-            SimpleIoc.Default.Register<IMessenger, Messenger>(true);
-           
+            
             //Caching ViewModels Class
             SimpleIoc.Default.Register<LoadingViewModel>();
             SimpleIoc.Default.Register<DefaultViewModel>(true);
@@ -51,6 +43,7 @@ namespace MonsterCast.ViewModel
             SimpleIoc.Default.Register<FavoriteViewModel>();
             SimpleIoc.Default.Register<CastDetailViewModel>(true);
             SimpleIoc.Default.Register<NowPlayingViewModel>(true);
+
         }
 
         public static void UnregisterAndCleanup<T>()

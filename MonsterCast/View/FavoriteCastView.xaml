@@ -8,12 +8,12 @@
     xmlns:Interactivity="using:Microsoft.Xaml.Interactivity" xmlns:Core="using:Microsoft.Xaml.Interactions.Core"
     x:Class="MonsterCast.View.FavoriteCastView"
     mc:Ignorable="d"
-    DataContext="{Binding FavoriteVM, Source={StaticResource ViewModelLocator}}">
+    DataContext="{Binding FavoriteVM, Source={StaticResource ViewModelLocator}}" Loaded="FavoritePage_Loaded">
 
     <ScrollViewer HorizontalAlignment="Stretch"
-                  VerticalAlignment="Stretch" Background="White">
+                  VerticalAlignment="Stretch" Background="Transparent">
         <GridView ItemTemplate="{StaticResource GridViewItemTemplateBlack}"
-                  IsItemClickEnabled="True" SelectionMode="None"
+                  IsItemClickEnabled="True" SelectionMode="None" HorizontalAlignment="Center" VerticalAlignment="Top"
                   ItemsSource="{Binding FavoriteCollection}"
                   Margin="20">
             <GridView.Transitions>

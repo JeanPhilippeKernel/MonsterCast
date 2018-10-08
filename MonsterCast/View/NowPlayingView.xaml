@@ -83,11 +83,11 @@
         <Grid x:Name="NotPlayingMask" Visibility="{Binding ShowMask}"  
               VerticalAlignment="Stretch"
               HorizontalAlignment="Stretch">
-            <Grid.Transitions>
+            <!--<Grid.Transitions>
                 <TransitionCollection>
                     <AddDeleteThemeTransition/>
                 </TransitionCollection>
-            </Grid.Transitions>
+            </Grid.Transitions>-->
 
             <Image VerticalAlignment="Stretch"
                    HorizontalAlignment="Stretch"

@@ -2,17 +2,18 @@
     x:Class="MonsterCast.View.MainView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:MonsterCast.View"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:MicrosoftUI="using:Microsoft.UI.Xaml.Controls"
-    xmlns:Interactivity="using:Microsoft.Xaml.Interactivity" 
-    xmlns:Behaviors="using:Microsoft.Toolkit.Uwp.UI.Animations.Behaviors"
+    xmlns:Interactivity="using:Microsoft.Xaml.Interactivity"
     xmlns:Core="using:Microsoft.Xaml.Interactions.Core"
+    xmlns:MicrosoftUI="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d"
-    DataContext="{Binding MainVM, Source={StaticResource ViewModelLocator}}">
-
-    <Grid Background="Black" Opacity="0.95">
+    DataContext="{Binding MainVM, Source={StaticResource ViewModelLocator}}" Loaded="Page_Loaded">
+    
+    <Grid>
+        <Grid.Background>
+            <AcrylicBrush BackgroundSource="HostBackdrop" TintColor="White" TintOpacity="0.1" FallbackColor="White" />
+        </Grid.Background>
         <Grid x:Name="MainCanvas" HorizontalAlignment="Stretch" 
                 VerticalAlignment="Stretch"
                 Visibility="Visible" Opacity=".90">
@@ -23,33 +24,30 @@
             <!--Main content area -->
 
             <Grid x:Name="RootContent" Canvas.ZIndex="100">
-                <NavigationView x:Name="MainNavigationView" OpenPaneLength="240" 
-                                IsBackEnabled="True" IsBackButtonVisible="{Binding IsBackButtonVisible}"
-                                IsSettingsVisible="False"
+               
+                <MicrosoftUI:NavigationView  x:Name="MainNavigationView" IsSettingsVisible="False" 
                                 MenuItemsSource="{Binding MenuItemCollection}"
-                                Background="{ThemeResource SystemControlAltHighAcrylicElementBrush}"
-                                AlwaysShowHeader="False">
-
-                    <NavigationView.PaneFooter>
-                        <NavigationViewList ItemsSource="{Binding OptionalItemCollection}" 
+                                AlwaysShowHeader="False" PaneDisplayMode="Top" SelectionFollowsFocus="Enabled" >
+                
+                    <MicrosoftUI:NavigationView.PaneFooter>
+                        <MicrosoftUI:NavigationViewList ItemsSource="{Binding OptionalItemCollection}" 
                                             IsItemClickEnabled="true" SelectionMode="Single">
+                            
                             <Interactivity:Interaction.Behaviors>
                                 <Core:EventTriggerBehavior EventName="ItemClick">
                                     <Core:InvokeCommandAction Command="{Binding OptionalMenuItemCommand}"/>
                                 </Core:EventTriggerBehavior>
                             </Interactivity:Interaction.Behaviors>
-                        </NavigationViewList>
-                    </NavigationView.PaneFooter>
-                    <NavigationView.ContentTransitions>
-                        <TransitionCollection>
-                            <EntranceThemeTransition/>
-                        </TransitionCollection>
-                    </NavigationView.ContentTransitions>
-
-                    <Frame Background="Black" x:Name="HostedFrame" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                        </MicrosoftUI:NavigationViewList>
+                    </MicrosoftUI:NavigationView.PaneFooter>
+              
+                    <Frame x:Name="HostedFrame"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                        <Frame.Background>
+                            <AcrylicBrush BackgroundSource="HostBackdrop" TintColor="White" TintOpacity="0.8" FallbackColor="White" />
+                        </Frame.Background>
                         <Frame.ContentTransitions>
                             <TransitionCollection>
-                                <EntranceThemeTransition />
+                                <PopupThemeTransition/>
                             </TransitionCollection>
                         </Frame.ContentTransitions>
 
@@ -61,15 +59,15 @@
                     </Frame>
 
                     <Interactivity:Interaction.Behaviors>
-                    
-                        <Core:EventTriggerBehavior EventName="SelectionChanged">
-                            <Core:InvokeCommandAction Command="{Binding SelectedMenuItemCommand}"/>
+
+                        <Core:EventTriggerBehavior EventName="ItemInvoked">
+                            <Core:InvokeCommandAction Command="{Binding InvokedMenuItemCommand}"/>
                         </Core:EventTriggerBehavior>
                         <Core:EventTriggerBehavior EventName="BackRequested">
                             <Core:InvokeCommandAction Command="{Binding BackButtonCommand}"/>
                         </Core:EventTriggerBehavior>
                     </Interactivity:Interaction.Behaviors>
-                </NavigationView>
+                </MicrosoftUI:NavigationView>
             </Grid>
 
             <!--player area -->
@@ -92,7 +90,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal">
-                        <FontIcon Width="20" Height="14" Foreground="White" FontFamily="Segoe MDL2 Assets" Glyph="&#xEB9E;" />
+                        <FontIcon Width="20" Height="14" Foreground="White" FontFamily="Segoe MDL2 Assets" Glyph="&#xE892;" />
                         <FontIcon x:Name="PlayButton" Foreground="White" FontFamily="Segoe MDL2 Assets" Width="20" Height="26" Margin="30,0,0,0" Glyph="&#xE768;">
                             <Interactivity:Interaction.Behaviors>
                                 <Core:EventTriggerBehavior EventName="Tapped">
@@ -100,7 +98,7 @@
                                 </Core:EventTriggerBehavior>
                             </Interactivity:Interaction.Behaviors>
                         </FontIcon>
-                        <FontIcon Width="20" Height="14" Foreground="White" FontFamily="Segoe MDL2 Assets" Glyph="&#xEB9D;" Margin="30,0,0,0"/>
+                        <FontIcon Width="20" Height="14" Foreground="White" FontFamily="Segoe MDL2 Assets" Glyph="&#xE893;" Margin="30,0,0,0"/>
                     </StackPanel>
 
                     <Grid Grid.Column="1" VerticalAlignment="Top" MinHeight="20">
@@ -114,7 +112,7 @@
                         <Slider x:Name="SliderElement"  VerticalAlignment="Center" MinWidth="300" 
                                  Value="{Binding PositionValue, Mode=TwoWay}" Minimum="0" Maximum="{Binding PositionMax, Mode=OneWay}" 
                                  Margin="15" ThumbToolTipValueConverter="{StaticResource SliderToolTipConverter}"
-                                 Foreground="White" ManipulationMode="TranslateX" RequiresPointer="WhenEngaged">
+                                 Foreground="White" ManipulationMode="All" >
                             <Interactivity:Interaction.Behaviors>
                                 <Core:EventTriggerBehavior EventName="ManipulationCompleted">
                                     <Core:InvokeCommandAction Command="{Binding ThumbManipulationCompletedCommand}"/>
@@ -144,15 +142,19 @@
                                 <Flyout LightDismissOverlayMode="Off">
                                     <Flyout.FlyoutPresenterStyle>
                                         <Style TargetType="FlyoutPresenter">
-                                            <Setter Property="Background" Value="#0c0c0c"/>
+                                            <Setter Property="Background" >
+                                                <Setter.Value>
+                                                    <AcrylicBrush BackgroundSource="HostBackdrop" TintColor="White" TintOpacity="0.1" FallbackColor="White" />
+                                                </Setter.Value>
+                                            </Setter>
                                             <Setter Property="BorderThickness" Value="0"/>
                                         </Style>
                                     </Flyout.FlyoutPresenterStyle>
-                                    <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                    <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="Transparent">
                                         <StackPanel Orientation="Horizontal">
-                                            <FontIcon VerticalAlignment="Center" Margin="10,0,30,0" Foreground="White" Glyph="&#xE767;"/>
-                                            <Slider MinWidth="200" MaxHeight="210" 
-                                                    Value="{Binding Volume, Mode=TwoWay}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
+                                            <FontIcon VerticalAlignment="Center" Margin="0,0,10,0"  Foreground="White" Glyph="&#xE767;"/>
+                                            <Slider MinWidth="200" MaxHeight="210" Margin="0,8,0,0" Value="{Binding Volume, Mode=TwoWay}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
+                                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Text="{Binding Volume}" Foreground="White" Margin="10" FontSize="18"/> 
                                         </StackPanel>
                                     </Grid>
                                 </Flyout>
@@ -168,7 +170,11 @@
                     </StackPanel>
 
                 </Grid>
-                <Grid HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0, 0, 70,0">
+                <Button x:Name="playbackBadge" 
+                        HorizontalAlignment="Right" 
+                        Background="Transparent" 
+                        BorderBrush="Transparent" Foreground="White" Padding="0" VerticalAlignment="Center" Margin="0, 0, 0, 0"
+                        Command="{Binding PlaybackBadgeClickCommand}">
                     <StackPanel Orientation="Horizontal" MaxHeight="66">
                         <Image MinWidth="66" MaxWidth="66" MinHeight="66" MaxHeight="66" Stretch="UniformToFill" 
                                Source="{Binding ActiveMedia.Address}"/>
@@ -180,10 +186,64 @@
                                            MaxLines="1" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" MaxWidth="200"/>
                             </StackPanel>
                         </Grid>
-
                     </StackPanel>
-                </Grid>
+                    <Button.ContextFlyout>
+                        <Flyout LightDismissOverlayMode="Off">
+                            <Flyout.FlyoutPresenterStyle>
+                                <Style TargetType="FlyoutPresenter">
+                                    <Setter Property="Background" >
+                                        <Setter.Value>
+                                            <AcrylicBrush BackgroundSource="HostBackdrop" TintColor="White" TintOpacity="0.1" FallbackColor="White" />
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Padding" Value="3"/>
+                                    
+                                </Style>
+                            </Flyout.FlyoutPresenterStyle>
+                            <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Height="200" Width="200" MaxHeight="312" MaxWidth="312">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition MinHeight="200"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                
+                                <Image Grid.Row="0"  VerticalAlignment="Stretch" 
+                                       HorizontalAlignment="Stretch" 
+                                       Stretch="UniformToFill" Source="{Binding ActiveMedia.Address}"/>
+                                
+                                <Grid Grid.Row="0" VerticalAlignment="Bottom" Height="40"
+                                      HorizontalAlignment="Stretch">
+                                    <Grid.Background>
+                                        <SolidColorBrush Opacity="0.7" Color="Black"/>
+                                    </Grid.Background>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <FontIcon x:Name="PlaybackLoveButton" Width="25" Margin="10" 
+                                                  HorizontalAlignment="Left" Foreground="White"
+                                                  FontFamily="Segoe MDL2 Assets" Glyph="&#xEB51;" FontWeight="Bold">
+                                            <Interactivity:Interaction.Behaviors>
+                                                <Core:EventTriggerBehavior EventName="Tapped">
+                                                    <Core:InvokeCommandAction Command="{Binding PlaybackBadgeLoveFontIconTappedCommand}"/>
+                                                </Core:EventTriggerBehavior>
+                                            </Interactivity:Interaction.Behaviors>
+                                        </FontIcon>
+                                        <FontIcon x:Name="PlaybackInfoButton" Width="25" Margin="10" 
+                                                  HorizontalAlignment="Right" Foreground="White"
+                                                  FontFamily="Segoe MDL2 Assets" Glyph="&#xE946;" FontWeight="Bold">
+                                            <Interactivity:Interaction.Behaviors>
+                                                <Core:EventTriggerBehavior EventName="Tapped">
+                                                    <Core:InvokeCommandAction Command="{Binding PlaybackBadgeInfoFontIconTappedCommand}"/>
+                                                </Core:EventTriggerBehavior>
+                                            </Interactivity:Interaction.Behaviors>
+                                        </FontIcon>
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
+                        </Flyout>
+                    </Button.ContextFlyout>
+                </Button>
             </Grid>
+            
+                       
         </Grid>
     </Grid>
 </Page>

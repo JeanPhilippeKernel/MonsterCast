@@ -12,7 +12,7 @@
     <DefaultLanguage>fr-FR</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion>10.0.17134.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.17134.0</TargetPlatformMinVersion>
+    <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -168,13 +168,10 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\PlayerSlider.cs" />
+    <Compile Include="Manager\MediaPlayerManager.cs" />
     <Compile Include="Converter\SliderToolTipConverter.cs" />
-    <Compile Include="Core\SystemEnumeration.cs" />
     <Compile Include="Model\AppConstants.cs" />
-    <Compile Include="SQLiteAsync.cs" />
     <Compile Include="Helper\Helpers.cs" />
-    <Compile Include="Helper\XmlHelper.cs" />
     <Compile Include="Model\Cast.cs" />
     <Compile Include="Model\MenuItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -277,35 +274,38 @@
     <Folder Include="Design\" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Net.Native.Compiler">
+      <Version>2.1.8</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.NETCore.Platforms">
-      <Version>1.1.0</Version>
+      <Version>2.1.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>5.3.3</Version>
+      <Version>6.1.7</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Toolkit.Uwp.UI.Animations">
-      <Version>1.4.1</Version>
+      <Version>4.0.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Toolkit.Uwp.UI.Controls">
-      <Version>1.4.1</Version>
+      <Version>4.0.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.UI.Xaml">
       <Version>2.0.180724003-prerelease</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.UI.Xaml.Core.Direct">
-      <Version>2.0.180723002-prerelease</Version>
-    </PackageReference>
     <PackageReference Include="MvvmLightLibs">
-      <Version>5.3.0</Version>
-    </PackageReference>
-    <PackageReference Include="sqlite-net-pcl">
-      <Version>1.3.3</Version>
+      <Version>5.4.1</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <SDKReference Include="Microsoft.VCLibs, Version=14.0">
       <Name>Visual C++ 2015 Runtime for Universal Windows Platform Apps</Name>
     </SDKReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MonsterCast.Core\MonsterCast.Core.csproj">
+      <Project>{f9f3f2e5-49a3-4de2-aa70-71b5a3e8c6f7}</Project>
+      <Name>MonsterCast.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

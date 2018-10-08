@@ -1,8 +1,10 @@
 ﻿using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
+using MonsterCast.Core.Database;
 using MonsterCast.Helper;
 using MonsterCast.Model;
+using MonsterCast.View;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,6 +17,7 @@ namespace MonsterCast.ViewModel
     {
         #region Fields
         private IMessenger _messenger = null;
+        private IMonsterDatabase _dbConn = null;
         private ObservableCollection<Cast> _favoriteCollection = null;
         #endregion
 
@@ -26,33 +29,44 @@ namespace MonsterCast.ViewModel
             set { Set(ref _favoriteCollection, value); }
         }
         #endregion
-        public FavoriteViewModel(IMessenger messenger)
+        public FavoriteViewModel(IMessenger messenger, IMonsterDatabase dbConn)
         {
             _messenger = messenger;
+            _dbConn = dbConn;
+            
+            _messenger.Register<NotificationMessage>(this, ViewBuiltNotificationAction);
             GridViewCommand = new RelayCommand<ItemClickEventArgs>(RelayCommandHandler);
-            _messenger.Register<GenericMessage<Cast>>(this, MessengerAction);
 
-            FavoriteCollection = AppConstants.FavoriteCollection;
-            AppConstants.FavoriteCollectionUpdated += AppConstants_FavoriteCollectionUpdated;
+            _dbConn.DatabaseUpdated += OnDatabaseUpdated;
+           
         }
 
-        private void AppConstants_FavoriteCollectionUpdated(object sender, EventArgs e)
+        private async void ViewBuiltNotificationAction(NotificationMessage args)
         {
-            FavoriteCollection = AppConstants.FavoriteCollection;
+            if (args.Notification == Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT)
+            {
+                var datas = await _dbConn.Database.Table<Cast>().ToListAsync();               
+                FavoriteCollection = new ObservableCollection<Cast>(datas);
+            }
+        }
+
+        private async void OnDatabaseUpdated(object sender, DatabaseUpdateEventArgs e)
+        {
+            var datas = await _dbConn.Database.Table<Cast>().ToListAsync();           
+            FavoriteCollection = new ObservableCollection<Cast>(datas);
             RaisePropertyChanged(() => FavoriteCollection);
         }
 
+     
         private void RelayCommandHandler(ItemClickEventArgs e)
         {           
             var clickedCast = e.ClickedItem as Cast;
-            var pageType = Type.GetType("MonsterCast.View.CastDetailView");
-            _messenger.Send(new GenericMessage<Type>(pageType), "nav_request");
-            _messenger.Send(new GenericMessage<Cast>(clickedCast), "fromFavorite");
+            var pageType = typeof(CastDetailView);
+            _messenger.Send<GenericMessage<Cast>, CastDetailViewModel>(new GenericMessage<Cast>(clickedCast));
+            _messenger.Send(new GenericMessage<Type>(pageType), Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION);
+            
         }
 
-        private void MessengerAction(GenericMessage<Cast> args)
-        {
-            //Add the recieved objec to favorite collection
-        }
+        
     }
 }

@@ -32,7 +32,7 @@ using System.Threading.Tasks;
 
 #pragma warning disable 1591 // XML Doc Comments
 
-namespace MonsterCast
+namespace MonsterCast.Core.Database
 {
 	public partial class SQLiteAsyncConnection
 	{
@@ -107,7 +107,7 @@ namespace MonsterCast
 				var conn = GetConnection ();
 				using (conn.Lock ()) {
 					foreach (Type type in types) {
-						int aResult = conn.CreateTable (type, createFlags);
+						int aResult = (int)conn.CreateTable (type, createFlags);
 						result.Results[type] = aResult;
 					}
 				}
