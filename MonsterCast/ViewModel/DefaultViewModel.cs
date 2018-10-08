@@ -167,18 +167,24 @@ namespace MonsterCast.ViewModel
             get { return _isLoading; }
             set { Set(ref _isLoading, value); }
         }
+
+        public delegate void NotificationCallback(bool value);
+        public NotificationCallback _notificationMessageCallback { get; set; }
         #endregion
         public DefaultViewModel(IMessenger messenger, IMonsterDatabase dbConnexion)
         {
 
             _messenger = messenger;
+            _notificationMessageCallback = MediaPlayerPlaybackCallback;
+
             _dbConn = dbConnexion;
             _showedCollection = new ObservableCollection<Cast>();
 
             _messenger.Register<NotificationMessage>(this, MessengerAction);
             _messenger.Register<NotificationMessage>(this, ViewBuiltNotificationAction);
             _messenger.Register<GenericMessage<Cast>>(this, Message.REQUEST_VIEW_UPDATE_PLAYBACK_BADGE, UpdateViewPlaybackBadgeRequestAction);
-
+            _messenger.Register<NotificationMessage>(this, Message.MEDIAPLAYER_PLAYBACK_STATE_PLAYING, PlaybackStatePlayingAction);
+            _messenger.Register<NotificationMessage>(this, Message.MEDIAPLAYER_PLAYBACK_STATE_PAUSED, PlaybackStatePausedAction);
 
             _scrollerBarValueChangedCommand = new RelayCommand<RangeBaseValueChangedEventArgs>(ScrollerBarValueChangedAction);
             _castItemClickCommand = new RelayCommand<ItemClickEventArgs>(CastItemClickAction);
@@ -191,47 +197,78 @@ namespace MonsterCast.ViewModel
             _playbackLoveCommand = new RelayCommand(PlaybackLoveRelayCommand);
         }
 
-        private void UpdateViewPlaybackBadgeRequestAction(GenericMessage<Cast> args)
+        private void PlaybackStatePausedAction(NotificationMessage args)
         {
-            //throw new NotImplementedException();
-            DispatcherHelper.CheckBeginInvokeOnUI(() =>
+            if (args.Notification == Message.MEDIAPLAYER_PLAYBACK_STATE_PAUSED)
             {
-               
+                DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                {
+                    PlayFontIcon.Glyph = "\uE768";
+                    PlayButtonTitle.Text = "Play";
+                });
+            }
+        }
+
+        private void PlaybackStatePlayingAction(NotificationMessage args)
+        {
+            if (args.Notification == Message.MEDIAPLAYER_PLAYBACK_STATE_PLAYING)
+            {
+                DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                {
+                    PlayFontIcon.Glyph = "\uE769";
+                    PlayButtonTitle.Text = "Pause";
+                });
+            }
+        }
+
+        private async void UpdateViewPlaybackBadgeRequestAction(GenericMessage<Cast> args)
+        {
+            await DispatcherHelper.RunAsync(() =>
+            {              
                 CurrentCast = args.Content;              
                 PlaybackBadge.Visibility = Visibility.Visible;
+                PlayFontIcon.Glyph = "\uE769";
+                PlayButtonTitle.Text = "Pause";
             });
+            await Task.Run(async () =>
+            {
+                var _isLoved = await _dbConn.IsAlreadyExist<Cast>(c => c.Title == CurrentCast.Title);
+                if (_isLoved)
+                {
+                    //Update the Id of Cast                  
+                    var castUpdated = await UpdateCastAsync();
+                    if (castUpdated)
+                    {
+                        DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                        {
+                            LoveFontIcon.Glyph = "\uEB52";
+                            LoveFontIcon.Foreground = new SolidColorBrush(Colors.Orange);
+                            LoveButtonTitle.Text = "You love";
+                        });
+                    }
+                }
+                else
+                {
+                    DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                    {
+                        LoveFontIcon.Glyph = "\uEB51";
+                        LoveFontIcon.Foreground = new SolidColorBrush(Colors.White);
+                        LoveButtonTitle.Text = "Love it";
+                    });
+                }                               
+            });
+
+        #region Messenger_Method
+                             
         }
 
 
-
-        #region Messenger_Method
-
-        private void ViewBuiltNotificationAction(NotificationMessage args)
+        private async void ViewBuiltNotificationAction(NotificationMessage args)
         {
-            if (args.Notification == Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT)
+            if (args.Notification == Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT)
             {
                 //Todo: Check if the current Cast is love it
-
-                Task.Run(async () =>
-                {
-                    var _isLoved = await _dbConn.IsAlreadyExist<Cast>(c => c.Title == CurrentCast.Title);
-                    if (_isLoved)
-                    {
-                        //Update the Id of Cast                  
-                        var castUpdated = await UpdateCastAsync();
-                        if (castUpdated)
-                        {
-                            DispatcherHelper.CheckBeginInvokeOnUI(() =>
-                            {
-                                LoveFontIcon.Glyph = "\uEB52";
-                                LoveFontIcon.Foreground = new SolidColorBrush(Colors.Orange);
-                                LoveButtonTitle.Text = "You love";
-                            });
-                        }
-
-                    }
-                });
-                Task.Run(() =>
+                await Task.Run(() =>
                 {
                     DispatcherHelper.CheckBeginInvokeOnUI(async () =>
                     {
@@ -245,7 +282,7 @@ namespace MonsterCast.ViewModel
                             ShowedCollection.Add(datas.ElementAt(i));
                     });
                 });
-
+                _messenger.Send(new NotificationMessageWithCallback(Message.IS_MEDIAPLAYER_PLAYBACK_STATE_PLAYING, _notificationMessageCallback), Message.IS_MEDIAPLAYER_PLAYBACK_STATE_PLAYING);
                 //Task.Run( () =>
                 //{
                 //    DispatcherHelper.RunAsync(() =>
@@ -259,7 +296,7 @@ namespace MonsterCast.ViewModel
 
                 //            ((List<Cast>)ContentRoot.ItemsSource).AddRange(SplitedCollection.ElementAt(i));
                 //        }
-                        
+
                 //        //ContentRoot.UpdateLayout();
 
                 //        //if (ContentRoot.Children.Count == 0)
@@ -283,14 +320,57 @@ namespace MonsterCast.ViewModel
                 //        //    ContentRoot.UpdateLayout();
                 //        //}
                 //    });
-                    
-                    
+
+
                 //});
             }
         }
+
+        private async void MediaPlayerPlaybackCallback(bool result)
+        {
+            if (result)
+            {
+                await DispatcherHelper.RunAsync(() =>
+                {
+                    //CurrentCast = args.Content;
+                    PlaybackBadge.Visibility = Visibility.Visible;
+                    PlayFontIcon.Glyph = "\uE769";
+                    PlayButtonTitle.Text = "Pause";
+                });
+                await Task.Run(async () =>
+                {
+                    var _isLoved = await _dbConn.IsAlreadyExist<Cast>(c => c.Title == CurrentCast.Title);
+                    if (_isLoved)
+                    {
+                        //Update the Id of Cast                  
+                        var castUpdated = await UpdateCastAsync();
+                        if (castUpdated)
+                        {
+                            DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                            {
+                                LoveFontIcon.Glyph = "\uEB52";
+                                LoveFontIcon.Foreground = new SolidColorBrush(Colors.Orange);
+                                LoveButtonTitle.Text = "You love";
+                            });
+                        }
+                    }
+                    else
+                    {
+                        DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                        {
+                            LoveFontIcon.Glyph = "\uEB51";
+                            LoveFontIcon.Foreground = new SolidColorBrush(Colors.White);
+                            LoveButtonTitle.Text = "Love it";
+                        });
+                    }
+                });
+            }
+           
+        }
+
         private void MessengerAction(NotificationMessage args)
         {
-            if (args.Notification == Core.Enumeration.Message.NOTIFICATION_PODCAST_HAS_BEEN_SET)
+            if (args.Notification == Message.NOTIFICATION_PODCAST_HAS_BEEN_SET)
             {
                 PodcastCollection = AppConstants.PodcastCollection;
                 CurrentCast = PodcastCollection.Count() > 0 ? PodcastCollection.ElementAt(0) : null;
@@ -363,25 +443,30 @@ namespace MonsterCast.ViewModel
             }
         }
 
-        private async void PlayRelayCommand()
+        private void PlayRelayCommand()
         {
             if (PlayFontIcon.Glyph == "\uE768")
             {
-                _messenger.Send(new GenericMessage<Cast>(_currentCast), Core.Enumeration.Message.REQUEST_MEDIAPLAYER_PLAY_SONG);
-                await DispatcherHelper.RunAsync(() =>
+                _messenger.Send(new NotificationMessage(Message.REQUEST_MEDIAPLAYER_RESUME_SONG), Message.REQUEST_MEDIAPLAYER_RESUME_SONG);
+                DispatcherHelper.CheckBeginInvokeOnUI(() =>
                 {
                     PlayFontIcon.Glyph = "\uE769";
                     PlayButtonTitle.Text = "Pause";
                 });
+                //DispatcherHelper.CheckBeginInvokeOnUI(() => PlayFontIcon.Glyph = "\uE768");
+                //_messenger.Send(new GenericMessage<Cast>(CurrentCast), Message.REQUEST_MEDIAPLAYER_RESUME_SONG);
             }
             else
             {
-                _messenger.Send(new GenericMessage<Cast>(_currentCast), Core.Enumeration.Message.REQUEST_MEDIAPLAYER_PAUSE_SONG);
-                await DispatcherHelper.RunAsync(() =>
+                _messenger.Send(new NotificationMessage(Message.REQUEST_MEDIAPLAYER_PAUSE_SONG), Message.REQUEST_MEDIAPLAYER_PAUSE_SONG);
+
+                DispatcherHelper.CheckBeginInvokeOnUI(() =>
                 {
                     PlayFontIcon.Glyph = "\uE768";
                     PlayButtonTitle.Text = "Play";
                 });
+                //DispatcherHelper.CheckBeginInvokeOnUI(() => PlayFontIcon.Glyph = "\uE769");
+                //_messenger.Send(new GenericMessage<Cast>(CurrentCast), Message.REQUEST_MEDIAPLAYER_PAUSE_SONG);
             }
 
         }
