@@ -90,6 +90,6 @@ namespace MonsterCast.View
             _messenger.Send<NotificationMessage, DefaultViewModel>(new NotificationMessage(Core.Enumeration.Message.NOTIFICATION_VIEW_HAS_BEEN_BUILT));
         }
 
-        
+       
     }
 }

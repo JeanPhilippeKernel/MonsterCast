@@ -28,6 +28,11 @@ namespace MonsterCast.ViewModel
         private readonly RelayCommand<RangeBaseValueChangedEventArgs> _scrollerBarValueChangedCommand = null;
         private readonly RelayCommand<ItemClickEventArgs> _castItemClickCommand = null;
         private readonly RelayCommand<TappedRoutedEventArgs> _castItemTappedCommand = null;
+        private readonly RelayCommand<PointerRoutedEventArgs> _castItemPointerEnteredCommand = null;
+        private readonly RelayCommand<PointerRoutedEventArgs> _castItemPointerExitedCommand = null;
+
+
+
         private readonly RelayCommand _playCommand = null;
         private readonly RelayCommand _loveCommand = null;
 
@@ -60,14 +65,19 @@ namespace MonsterCast.ViewModel
 
         private Grid _playbackBadge = null;
 
-
         private bool _isLoading = false;
+
+        private Grid _overlayGrid = null;
         #endregion
 
         #region Properties
         public RelayCommand<RangeBaseValueChangedEventArgs> ScrollerBarValueChangedCommand => _scrollerBarValueChangedCommand;
         public RelayCommand<ItemClickEventArgs> CastItemClickCommand => _castItemClickCommand;
         public RelayCommand<TappedRoutedEventArgs> CastItemTappedCommand => _castItemTappedCommand;
+
+        public  RelayCommand<PointerRoutedEventArgs> CastItemPointerEnteredCommand => _castItemPointerEnteredCommand;
+        public RelayCommand<PointerRoutedEventArgs> CastItemPointerExitedCommand => _castItemPointerExitedCommand;
+
         public RelayCommand PlayCommand => _playCommand;
         public RelayCommand LoveCommand => _loveCommand;
 
@@ -168,6 +178,13 @@ namespace MonsterCast.ViewModel
             set { Set(ref _isLoading, value); }
         }
 
+
+        public Grid OverlayGrid
+        {
+            get { return _overlayGrid; }
+            set { Set(() => OverlayGrid, ref _overlayGrid, value); }
+        }
+
         public delegate void NotificationCallback(bool value);
         public NotificationCallback _notificationMessageCallback { get; set; }
         #endregion
@@ -190,12 +207,17 @@ namespace MonsterCast.ViewModel
             _castItemClickCommand = new RelayCommand<ItemClickEventArgs>(CastItemClickAction);
             _castItemTappedCommand = new RelayCommand<TappedRoutedEventArgs>(CastItemTappedAction);
 
+            _castItemPointerEnteredCommand = new RelayCommand<PointerRoutedEventArgs>(CastItemPointerEnteredAction);
+            _castItemPointerExitedCommand = new RelayCommand<PointerRoutedEventArgs>(CastItemPointerExitedAction);
+
             _playCommand = new RelayCommand(PlayRelayCommand);
             _loveCommand = new RelayCommand(LoveRelayCommand);
 
             _playbackPlayCommand = new RelayCommand(PlaybackPlayRelayCommand);
             _playbackLoveCommand = new RelayCommand(PlaybackLoveRelayCommand);
         }
+
+        
 
         private void PlaybackStatePausedAction(NotificationMessage args)
         {
@@ -396,7 +418,23 @@ namespace MonsterCast.ViewModel
         #region RelayCommand_Method
         private  void PlaybackPlayRelayCommand()
         {
-            _messenger.Send(new GenericMessage<Cast>(CastItemClicked), Message.REQUEST_MEDIAPLAYER_PLAY_SONG);
+           
+            if(OverlayGrid != null)
+            {
+                var frameworkElement = OverlayGrid as FrameworkElement;
+                var playFontIcon = frameworkElement.FindName("PlaybackPlayButton") as FontIcon;
+                if(playFontIcon.Glyph == "\uE768")
+                {
+                    playFontIcon.Glyph = "\uE769";
+                    _messenger.Send(new GenericMessage<Cast>(CastItemClicked), Message.REQUEST_MEDIAPLAYER_PLAY_SONG);
+                }
+
+                else if (playFontIcon.Glyph == "\uE769")
+                {
+                    playFontIcon.Glyph = "\uE768";
+                    _messenger.Send(new NotificationMessage(Message.REQUEST_MEDIAPLAYER_PAUSE_SONG), Message.REQUEST_MEDIAPLAYER_PAUSE_SONG);
+                }
+            }
         }
 
         private async void PlaybackLoveRelayCommand()
@@ -481,15 +519,42 @@ namespace MonsterCast.ViewModel
 
             //_messenger.Send<GenericMessage<Cast>, CastDetailViewModel>(new GenericMessage<Cast>(clickedCast));
         }
-
-        private void CastItemTappedAction(TappedRoutedEventArgs e)
+        private void CastItemPointerExitedAction(PointerRoutedEventArgs args)
         {
-            var originalSource = e.OriginalSource as FrameworkElement;
-            var templateLayout = originalSource.FindName("ContainerRoot");
-            if(templateLayout != null)
+            //args.Handled = true;
+            //if (!args.Pointer.IsInRange && !args.Pointer.IsInContact)
+            //    OverlayGrid.Visibility = Visibility.Collapsed;
+        }
+
+        private void CastItemPointerEnteredAction(PointerRoutedEventArgs args)
+        {
+            args.Handled = true;
+
+            var originalSource = args.OriginalSource as FrameworkElement;
+            var overlayGrid = originalSource.FindName("OverlayGrid");
+            if (overlayGrid != null)
             {
-                var grid = templateLayout as Grid;
-                var frameworkElement = ((Flyout)grid.ContextFlyout).Content as FrameworkElement;
+                var grid = overlayGrid as Grid;
+
+                if (OverlayGrid != null)
+                {
+                    if (ReferenceEquals(grid, OverlayGrid))
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        OverlayGrid.Visibility = Visibility.Collapsed;
+                        var fe = OverlayGrid as FrameworkElement;
+                        var playIcon = fe.FindName("PlaybackPlayButton") as FontIcon;
+                        playIcon.Glyph = "\uE768";
+                    }
+                }
+
+
+                grid.Visibility = Visibility.Visible;
+
+                var frameworkElement = grid as FrameworkElement;
 
                 var playFontIcon = frameworkElement.FindName("PlaybackPlayButton") as FontIcon;
                 var loveFontIcon = frameworkElement.FindName("PlaybackLoveButton") as FontIcon;
@@ -508,10 +573,42 @@ namespace MonsterCast.ViewModel
                 triggerForPlayIcon.Actions.Add(actionForPlayIcon);
                 triggerForPlayIcon.Attach(playFontIcon);
 
-                grid.ContextFlyout.ShowAt(originalSource);
-                
+                OverlayGrid = grid;
             }
+
         }
+
+        private void CastItemTappedAction(TappedRoutedEventArgs e)
+        {
+            //var originalSource = e.OriginalSource as FrameworkElement;
+            //var templateLayout = originalSource.FindName("ContainerRoot");
+            //if(templateLayout != null)
+            //{
+            //    var grid = templateLayout as Grid;
+            //    var frameworkElement = ((Flyout)grid.ContextFlyout).Content as FrameworkElement;
+
+            //    var playFontIcon = frameworkElement.FindName("PlaybackPlayButton") as FontIcon;
+            //    var loveFontIcon = frameworkElement.FindName("PlaybackLoveButton") as FontIcon;
+            //    var infoFontIcon = frameworkElement.FindName("PlaybackInfoButton") as FontIcon;
+
+
+            //    var triggerForLoveIcon = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "Tapped" };
+            //    var actionForLoveIcon = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = PlaybackLoveCommand };
+
+            //    var triggerForPlayIcon = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "Tapped" };
+            //    var actionForPlayIcon = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = PlaybackPlayCommand };
+
+            //    triggerForLoveIcon.Actions.Add(actionForLoveIcon);
+            //    triggerForLoveIcon.Attach(loveFontIcon);
+
+            //    triggerForPlayIcon.Actions.Add(actionForPlayIcon);
+            //    triggerForPlayIcon.Attach(playFontIcon);
+
+            //    grid.ContextFlyout.ShowAt(originalSource);
+                
+            //}
+        }
+
         private void ScrollerBarValueChangedAction(RangeBaseValueChangedEventArgs args)
         {
             if (ContentRoot.ItemsSource != null)

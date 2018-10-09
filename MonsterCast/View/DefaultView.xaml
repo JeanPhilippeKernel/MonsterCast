@@ -98,9 +98,18 @@
                     <Core:EventTriggerBehavior EventName="ItemClick">
                         <Core:InvokeCommandAction Command="{Binding CastItemClickCommand}"/>
                     </Core:EventTriggerBehavior>
-                    <Core:EventTriggerBehavior EventName="Tapped">
+                    <!--<Core:EventTriggerBehavior EventName="Tapped">
                         <Core:InvokeCommandAction Command="{Binding CastItemTappedCommand}"/>
+                    </Core:EventTriggerBehavior>-->
+
+                    <Core:EventTriggerBehavior EventName="PointerMoved">
+                        <Core:InvokeCommandAction Command="{Binding CastItemPointerEnteredCommand}"/>
                     </Core:EventTriggerBehavior>
+
+                    <!--<Core:EventTriggerBehavior EventName="PointerExited">
+                        <Core:InvokeCommandAction Command="{Binding CastItemPointerExitedCommand}"/>
+                    </Core:EventTriggerBehavior>-->
+
                 </Interactivity:Interaction.Behaviors>
             </GridView>
             

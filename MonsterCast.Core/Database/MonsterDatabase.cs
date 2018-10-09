@@ -63,7 +63,7 @@ namespace MonsterCast.Core.Database
                 _db = new SQLiteAsyncConnection(_dbFile.Path);
                 return 0;
             }
-            catch (FileNotFoundException e)
+            catch (FileNotFoundException)
             {
 
                 _folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("Database", CreationCollisionOption.OpenIfExists);
