@@ -10,6 +10,7 @@ using Windows.Media.Playback;
 using MonsterCast.Core.Enumeration;
 using GalaSoft.MvvmLight;
 using MonsterCast.ViewModel;
+using System.Diagnostics;
 
 namespace MonsterCast.Manager
 {
@@ -21,11 +22,14 @@ namespace MonsterCast.Manager
         private IMessenger _messenger = null;
         private Cast _currentPlayingCast = null;
 
+        private bool _isLoopingEnabled = false;
+
         public MediaPlayerManager(IMessenger messenger)
         {
             _messenger = messenger;
             _mediaPlayer = new MediaPlayer();
             _mediaPlayer.CommandManager.IsEnabled = true;
+            
             
             
 
@@ -35,7 +39,14 @@ namespace MonsterCast.Manager
             _messenger.Register<NotificationMessage>(this, Message.REQUEST_MEDIAPLAYER_PREVIOUS_SONG, NotificationRequestAction);
             _messenger.Register<NotificationMessage>(this, Message.REQUEST_MEDIAPLAYER_NEXT_SONG, NotificationRequestAction);
 
+            _messenger.Register<NotificationMessage>(this, Message.REQUEST_MEDIAPLAYER_ENABLE_LOOPING, NotificationRequestAction);
+            _messenger.Register<NotificationMessage>(this, Message.REQUEST_MEDIAPLAYER_DISABLE_LOOPING, NotificationRequestAction);
+
+            _messenger.Register<NotificationMessage>(this, Message.REQUEST_MEDIAPLAYER_GET_ACCESS_TO_PLAYBACK_TIMELINE, NotificationRequestAction);
+            _messenger.Register<NotificationMessage>(this, Message.REQUEST_MEDIAPLAYER_RELEASE_ACCESS_TO_PLAYBACK_TIMELINE, NotificationRequestAction);
+
             _messenger.Register<GenericMessage<double>>(this, Message.REQUEST_MEDIAPLAYER_UPDATE_VOLUME, UpdateVolumeRequestAction);
+            _messenger.Register<GenericMessage<double>>(this, Message.REQUEST_MEDIAPLAYER_UPDATE_PLAYBACK_TIMELINE_POSITION, UpdatePlaybackTimelinePositionAction);
 
             _messenger.Register<NotificationMessageWithCallback>(this, Message.IS_MEDIAPLAYER_PLAYBACK_STATE_PLAYING, CheckPlaybackPlayingState);
 
@@ -50,6 +61,8 @@ namespace MonsterCast.Manager
             _mediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackStateChanged;
             _mediaPlayer.PlaybackSession.PositionChanged += PositionChanged;
         }
+
+        
 
         private void CheckPlaybackPlayingState(NotificationMessageWithCallback args)
         {
@@ -114,11 +127,35 @@ namespace MonsterCast.Manager
             {
 
             }
+
+            else if(args.Notification == Message.REQUEST_MEDIAPLAYER_DISABLE_LOOPING)
+            {
+                _isLoopingEnabled = false;
+            }
+            else if (args.Notification == Message.REQUEST_MEDIAPLAYER_ENABLE_LOOPING)
+            {
+                _isLoopingEnabled = true;
+            }
+
+            else if(args.Notification == Message.REQUEST_MEDIAPLAYER_GET_ACCESS_TO_PLAYBACK_TIMELINE)
+            {
+                _mediaPlayer.PlaybackSession.PositionChanged -= PositionChanged;
+            }
+            else if(args.Notification == Message.REQUEST_MEDIAPLAYER_RELEASE_ACCESS_TO_PLAYBACK_TIMELINE)
+            {
+                _mediaPlayer.PlaybackSession.PositionChanged += PositionChanged;
+            }
         }
 
         private void UpdateVolumeRequestAction(GenericMessage<double> args)
         {
             _mediaPlayer.Volume = args.Content;
+        }
+
+        private void UpdatePlaybackTimelinePositionAction(GenericMessage<double> args)
+        {
+            
+            _mediaPlayer.PlaybackSession.Position = TimeSpan.FromSeconds(args.Content);
         }
         #endregion
 
@@ -134,6 +171,7 @@ namespace MonsterCast.Manager
         {
             _messenger.Send(new NotificationMessage(Message.MEDIAPLAYER_MEDIA_ENDED), Message.MEDIAPLAYER_MEDIA_ENDED);
 
+            
         }
 
         private void MediaOpened(MediaPlayer sender, object args)
@@ -188,6 +226,12 @@ namespace MonsterCast.Manager
                 _mediaPlayer.PlaybackSession.Position = TimeSpan.FromSeconds(-1.0);
                 
                 _messenger.Send(new NotificationMessage(Message.MEDIAPLAYER_MEDIA_ENDED), Message.MEDIAPLAYER_MEDIA_ENDED);
+
+                if (_isLoopingEnabled)
+                {
+                    //_mediaPlayer.PlaybackSession.Position = TimeSpan.FromSeconds(-1.0);
+                    _messenger.Send(new NotificationMessage(Message.REQUEST_MEDIAPLAYER_RESUME_SONG), Message.REQUEST_MEDIAPLAYER_RESUME_SONG);
+                }
             }
             else
             {

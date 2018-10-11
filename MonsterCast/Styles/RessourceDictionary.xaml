@@ -356,7 +356,7 @@
         </Setter>
     </Style>
     
-    <Style TargetType="Slider">
+    <Style TargetType="Slider" x:Key="SliderStyle">
         <Setter Property="Background" Value="{ThemeResource SystemControlForegroundBaseMediumLowBrush}"/>
         <Setter Property="BorderThickness" Value="{ThemeResource SliderBorderThemeThickness}"/>
         <Setter Property="Foreground" Value="{ThemeResource SystemControlHighlightAccentBrush}"/>

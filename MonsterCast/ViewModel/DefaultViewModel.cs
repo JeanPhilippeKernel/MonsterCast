@@ -31,8 +31,6 @@ namespace MonsterCast.ViewModel
         private readonly RelayCommand<PointerRoutedEventArgs> _castItemPointerEnteredCommand = null;
         private readonly RelayCommand<PointerRoutedEventArgs> _castItemPointerExitedCommand = null;
 
-
-
         private readonly RelayCommand _playCommand = null;
         private readonly RelayCommand _loveCommand = null;
 
@@ -547,7 +545,11 @@ namespace MonsterCast.ViewModel
                         OverlayGrid.Visibility = Visibility.Collapsed;
                         var fe = OverlayGrid as FrameworkElement;
                         var playIcon = fe.FindName("PlaybackPlayButton") as FontIcon;
-                        playIcon.Glyph = "\uE768";
+                        if(playIcon != null)
+                        {
+                            playIcon.Glyph = "\uE768";
+
+                        }
                     }
                 }
 

@@ -51,11 +51,11 @@
                             </TransitionCollection>
                         </Frame.ContentTransitions>
 
-                        <Interactivity:Interaction.Behaviors>
+                        <!--<Interactivity:Interaction.Behaviors>
                             <Core:EventTriggerBehavior EventName="Navigated">
                                 <Core:InvokeCommandAction Command="{Binding HostedFrameNavigatedCommand}"/>
                             </Core:EventTriggerBehavior>
-                        </Interactivity:Interaction.Behaviors>
+                        </Interactivity:Interaction.Behaviors>-->
                     </Frame>
 
                     <Interactivity:Interaction.Behaviors>
@@ -112,15 +112,16 @@
                         <Slider x:Name="SliderElement"  VerticalAlignment="Center" MinWidth="300" 
                                  Value="{Binding PositionValue, Mode=TwoWay}" Minimum="0" Maximum="{Binding PositionMax, Mode=OneWay}" 
                                  Margin="15" ThumbToolTipValueConverter="{StaticResource SliderToolTipConverter}"
-                                 Foreground="White" ManipulationMode="All" >
-                            <Interactivity:Interaction.Behaviors>
+                                 Foreground="White" ManipulationMode="All"  Style="{StaticResource SliderStyle}">
+                           
+                            <!--<Interactivity:Interaction.Behaviors>
                                 <Core:EventTriggerBehavior EventName="ManipulationCompleted">
                                     <Core:InvokeCommandAction Command="{Binding ThumbManipulationCompletedCommand}"/>
                                 </Core:EventTriggerBehavior>
                                 <Core:EventTriggerBehavior EventName="ManipulationStarted">
                                     <Core:InvokeCommandAction Command="{Binding ThumbManipulationStartedCommand}"/>
                                 </Core:EventTriggerBehavior>
-                            </Interactivity:Interaction.Behaviors>
+                            </Interactivity:Interaction.Behaviors>-->
 
                         </Slider>
                         <TextBlock Width="55" Margin="5,0,0,0" VerticalAlignment="Center" 
@@ -153,7 +154,7 @@
                                     <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="Transparent">
                                         <StackPanel Orientation="Horizontal">
                                             <FontIcon VerticalAlignment="Center" Margin="0,0,10,0"  Foreground="White" Glyph="&#xE767;"/>
-                                            <Slider MinWidth="200" MaxHeight="210" Margin="0,8,0,0" Value="{Binding Volume, Mode=TwoWay}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
+                                            <Slider MinWidth="200" MaxHeight="210" Margin="0,8,0,0" Value="{Binding Volume, Mode=TwoWay}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Style="{StaticResource SliderStyle}"/>
                                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Text="{Binding Volume}" Foreground="White" Margin="10" FontSize="18"/> 
                                         </StackPanel>
                                     </Grid>
