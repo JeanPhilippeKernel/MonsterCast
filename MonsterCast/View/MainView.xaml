@@ -212,8 +212,7 @@
                                        HorizontalAlignment="Stretch" 
                                        Stretch="UniformToFill" Source="{Binding ActiveMedia.Address}"/>
                                 
-                                <Grid Grid.Row="0" VerticalAlignment="Bottom" Height="40"
-                                      HorizontalAlignment="Stretch">
+                                <Grid Grid.Row="0" VerticalAlignment="Bottom" Height="40" HorizontalAlignment="Stretch">
                                     <Grid.Background>
                                         <SolidColorBrush Opacity="0.7" Color="Black"/>
                                     </Grid.Background>

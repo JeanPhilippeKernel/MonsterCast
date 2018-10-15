@@ -31,8 +31,6 @@ namespace MonsterCast.Manager
             _mediaPlayer.CommandManager.IsEnabled = true;
             
             
-            
-
             _messenger.Register<GenericMessage<Cast>>(this, Message.REQUEST_MEDIAPLAYER_PLAY_SONG, PlayRequestAction);                                             
             _messenger.Register<NotificationMessage>(this, Message.REQUEST_MEDIAPLAYER_PAUSE_SONG, NotificationRequestAction);
             _messenger.Register<NotificationMessage>(this, Message.REQUEST_MEDIAPLAYER_RESUME_SONG, NotificationRequestAction);
@@ -66,7 +64,7 @@ namespace MonsterCast.Manager
 
         private void CheckPlaybackPlayingState(NotificationMessageWithCallback args)
         {
-            //throw new NotImplementedException();
+            
             var playbackState = _mediaPlayer.PlaybackSession.PlaybackState;
             if (playbackState == MediaPlaybackState.Playing)
                 args.Execute(true);
@@ -78,12 +76,7 @@ namespace MonsterCast.Manager
         #region Messenger
         private void PlayRequestAction(GenericMessage<Cast> args)
         {
-            //if(_currentPlayingCast == null)
-            //{
-            //    _messenger.Send(new NotificationMessage(Message.MEDIAPLAYER_MEDIA_ENDED), Message.MEDIAPLAYER_MEDIA_ENDED);
-            //    return;
-            //}
-
+            
             if(ReferenceEquals(_currentPlayingCast, args.Content)
                 && _mediaPlayer.PlaybackSession.Position != TimeSpan.FromSeconds(0.0))
             {

@@ -5,7 +5,6 @@ using GalaSoft.MvvmLight.Threading;
 using MonsterCast.Core.Enumeration;
 using MonsterCast.Helper;
 using MonsterCast.Model;
-using MonsterCast.View;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,7 +16,6 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Imaging;
 using MonsterCast.Core.Database;
 
 namespace MonsterCast.ViewModel
@@ -26,8 +24,7 @@ namespace MonsterCast.ViewModel
     {
         #region Fields
         private readonly RelayCommand<RangeBaseValueChangedEventArgs> _scrollerBarValueChangedCommand = null;
-        private readonly RelayCommand<ItemClickEventArgs> _castItemClickCommand = null;
-        private readonly RelayCommand<TappedRoutedEventArgs> _castItemTappedCommand = null;
+        
         private readonly RelayCommand<PointerRoutedEventArgs> _castItemPointerEnteredCommand = null;
         private readonly RelayCommand<PointerRoutedEventArgs> _castItemPointerExitedCommand = null;
 
@@ -37,20 +34,20 @@ namespace MonsterCast.ViewModel
         private readonly RelayCommand _playbackPlayCommand = null;
         private readonly RelayCommand _playbackLoveCommand = null;
 
-        //private IEnumerable<Cast> _nextCurrentCollection = null;
         private IEnumerable<Cast> _podcastCollection = null;
         private IEnumerable<IList<Cast>> _splitedCollection = null;
         private ObservableCollection<Cast> _showedCollection = null;
 
+        private readonly List<Grid> _alreadyAttachedBehavior = null;
+
         private int _showedCollectionIndex = 0;
         private int _splitedCollectionLength = 0;
         private Cast _currentCast = null;
-        private Cast _castItemClicked = null;
+        private Cast _overlayedCast = null;
         private IMessenger _messenger = null;
         private Core.Database.IMonsterDatabase _dbConn = null;
 
         private ScrollViewer _scrollerView = null;
-        //private StackPanel _contentRoot = null;
         private GridView _contentRoot = null;
         private ScrollBar _scrollerBar = null;
 
@@ -63,16 +60,12 @@ namespace MonsterCast.ViewModel
 
         private Grid _playbackBadge = null;
 
-        private bool _isLoading = false;
-
         private Grid _overlayGrid = null;
         #endregion
 
         #region Properties
         public RelayCommand<RangeBaseValueChangedEventArgs> ScrollerBarValueChangedCommand => _scrollerBarValueChangedCommand;
-        public RelayCommand<ItemClickEventArgs> CastItemClickCommand => _castItemClickCommand;
-        public RelayCommand<TappedRoutedEventArgs> CastItemTappedCommand => _castItemTappedCommand;
-
+        
         public  RelayCommand<PointerRoutedEventArgs> CastItemPointerEnteredCommand => _castItemPointerEnteredCommand;
         public RelayCommand<PointerRoutedEventArgs> CastItemPointerExitedCommand => _castItemPointerExitedCommand;
 
@@ -81,12 +74,7 @@ namespace MonsterCast.ViewModel
 
         public RelayCommand PlaybackPlayCommand => _playbackPlayCommand;
         public RelayCommand PlaybackLoveCommand => _playbackLoveCommand;
-        //public IEnumerable<Cast> NextCurrentCollection
-        //{
-        //    get { return _nextCurrentCollection; }
-        //    set { Set(ref _nextCurrentCollection, value); }
-        //}
-
+       
         public IEnumerable<Cast> PodcastCollection
         {
             get { return _podcastCollection; }
@@ -110,10 +98,10 @@ namespace MonsterCast.ViewModel
             set { Set(ref _currentCast, value); }
         }
 
-        public Cast CastItemClicked
+        public Cast OverlayedCast
         {
-            get { return _castItemClicked; }
-            set { Set( () => CastItemClicked, ref _castItemClicked, value); }
+            get { return _overlayedCast; }
+            set { Set( () => OverlayedCast, ref _overlayedCast, value); }
         }
 
         public ScrollViewer ScrollerView
@@ -121,12 +109,6 @@ namespace MonsterCast.ViewModel
             get { return _scrollerView; }
             set { Set(ref _scrollerView, value); }
         }
-
-        //public StackPanel ContentRoot
-        //{
-        //    get { return _contentRoot; }
-        //    set { Set(ref _contentRoot, value); }
-        //}
 
         public GridView ContentRoot
         {
@@ -170,13 +152,6 @@ namespace MonsterCast.ViewModel
             set { Set(ref _playbackBadge, value); }
         }
 
-        public bool IsLoading
-        {
-            get { return _isLoading; }
-            set { Set(ref _isLoading, value); }
-        }
-
-
         public Grid OverlayGrid
         {
             get { return _overlayGrid; }
@@ -188,6 +163,7 @@ namespace MonsterCast.ViewModel
         #endregion
         public DefaultViewModel(IMessenger messenger, IMonsterDatabase dbConnexion)
         {
+            _alreadyAttachedBehavior = new List<Grid>();
 
             _messenger = messenger;
             _notificationMessageCallback = MediaPlayerPlaybackCallback;
@@ -202,8 +178,6 @@ namespace MonsterCast.ViewModel
             _messenger.Register<NotificationMessage>(this, Message.MEDIAPLAYER_PLAYBACK_STATE_PAUSED, PlaybackStatePausedAction);
 
             _scrollerBarValueChangedCommand = new RelayCommand<RangeBaseValueChangedEventArgs>(ScrollerBarValueChangedAction);
-            _castItemClickCommand = new RelayCommand<ItemClickEventArgs>(CastItemClickAction);
-            _castItemTappedCommand = new RelayCommand<TappedRoutedEventArgs>(CastItemTappedAction);
 
             _castItemPointerEnteredCommand = new RelayCommand<PointerRoutedEventArgs>(CastItemPointerEnteredAction);
             _castItemPointerExitedCommand = new RelayCommand<PointerRoutedEventArgs>(CastItemPointerExitedAction);
@@ -256,7 +230,7 @@ namespace MonsterCast.ViewModel
                 if (_isLoved)
                 {
                     //Update the Id of Cast                  
-                    var castUpdated = await UpdateCastAsync();
+                    var castUpdated = await UpdateCastAsync(CurrentCast);
                     if (castUpdated)
                     {
                         DispatcherHelper.CheckBeginInvokeOnUI(() =>
@@ -278,10 +252,10 @@ namespace MonsterCast.ViewModel
                 }                               
             });
 
-        #region Messenger_Method
                              
         }
 
+        #region Messenger_Method
 
         private async void ViewBuiltNotificationAction(NotificationMessage args)
         {
@@ -303,46 +277,7 @@ namespace MonsterCast.ViewModel
                     });
                 });
                 _messenger.Send(new NotificationMessageWithCallback(Message.IS_MEDIAPLAYER_PLAYBACK_STATE_PLAYING, _notificationMessageCallback), Message.IS_MEDIAPLAYER_PLAYBACK_STATE_PLAYING);
-                //Task.Run( () =>
-                //{
-                //    DispatcherHelper.RunAsync(() =>
-                //    {
-                //        int length = SplitedCollection.Count();
-                //        for (int i = 0; i < length; i++)
-                //        {
-                //            var _itemsSource = ContentRoot.ItemsSource as List<Cast>;
-                //            if (_itemsSource == null)
-                //                ContentRoot.ItemsSource = new List<Cast>();
-
-                //            ((List<Cast>)ContentRoot.ItemsSource).AddRange(SplitedCollection.ElementAt(i));
-                //        }
-
-                //        //ContentRoot.UpdateLayout();
-
-                //        //if (ContentRoot.Children.Count == 0)
-                //        //{
-                //        //    bool _withBg = true;
-
-                //        //    for (int i = 0; i < _splitedCollectionLength; i++)
-                //        //    {
-
-                //        //        if ((i == 0) || (i == 1))
-                //        //        {
-                //        //            ContentRoot.Children.Add(CreateGridChild(SplitedCollection.ElementAt(i), _withBg));
-                //        //        }
-
-                //        //        else
-                //        //        {
-                //        //            ContentRoot.Children.Add(CreateGridChild(SplitedCollection.ElementAt(i), _withBg, Visibility.Collapsed));
-                //        //        }
-                //        //        _withBg = _withBg == true ? false : true;
-                //        //    }
-                //        //    ContentRoot.UpdateLayout();
-                //        //}
-                //    });
-
-
-                //});
+                
             }
         }
 
@@ -363,7 +298,7 @@ namespace MonsterCast.ViewModel
                     if (_isLoved)
                     {
                         //Update the Id of Cast                  
-                        var castUpdated = await UpdateCastAsync();
+                        var castUpdated = await UpdateCastAsync(CurrentCast);
                         if (castUpdated)
                         {
                             DispatcherHelper.CheckBeginInvokeOnUI(() =>
@@ -388,28 +323,22 @@ namespace MonsterCast.ViewModel
            
         }
 
-        private void MessengerAction(NotificationMessage args)
+        private  void MessengerAction(NotificationMessage args)
         {
             if (args.Notification == Message.NOTIFICATION_PODCAST_HAS_BEEN_SET)
             {
                 PodcastCollection = AppConstants.PodcastCollection;
-                CurrentCast = PodcastCollection.Count() > 0 ? PodcastCollection.ElementAt(0) : null;
 
                 SplitedCollection = Core.Helpers.Collection.Spliter(ref _podcastCollection, 20);
                 _splitedCollectionLength = SplitedCollection.Count();
 
-                IsLoading = true;
                 for (int i = 0; i < _splitedCollectionLength; i++)
                 {
                     IEnumerable<Cast> _collection = SplitedCollection.ElementAt(i);
-                    Helpers.FetchImageParallel(ref _collection);
+                     Helpers.FetchThumbnailAsync(ref _collection);
                 }
-                IsLoading = false;
-            }
-
-            //var firstFiveElement = PodcastCollection.Take(5);
-            //Helpers.FetchImageParallel(ref firstFiveElement);
-            //NextCurrentCollection = firstFiveElement;
+               
+            }         
         }
         #endregion
 
@@ -424,7 +353,7 @@ namespace MonsterCast.ViewModel
                 if(playFontIcon.Glyph == "\uE768")
                 {
                     playFontIcon.Glyph = "\uE769";
-                    _messenger.Send(new GenericMessage<Cast>(CastItemClicked), Message.REQUEST_MEDIAPLAYER_PLAY_SONG);
+                    _messenger.Send(new GenericMessage<Cast>(OverlayedCast), Message.REQUEST_MEDIAPLAYER_PLAY_SONG);
                 }
 
                 else if (playFontIcon.Glyph == "\uE769")
@@ -437,8 +366,47 @@ namespace MonsterCast.ViewModel
 
         private async void PlaybackLoveRelayCommand()
         {
-            
+            var _isLoved = await _dbConn.IsAlreadyExist<Cast>(c => c.Title == OverlayedCast.Title);
+            if (!_isLoved)
+            {
+                int inserted = await _dbConn.AddAsync(OverlayedCast);
+                if (inserted > 0)
+                {
+                    //Update the Id of Cast
+                    var castUpdated = await UpdateCastAsync(OverlayedCast);
+                    if (castUpdated)
+                    {
+                        DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                        {
+                            var fe = OverlayGrid as FrameworkElement;
+                            var loveFontIcon = fe.FindName("PlaybackLoveButton") as FontIcon;
+                            loveFontIcon.Glyph = "\uEB52";
+                            loveFontIcon.Foreground = new SolidColorBrush(Colors.Orange);
+                            
+                        });
+                    }
+
+                }
+
+            }
+            else
+            {
+                int deleted = await _dbConn.RemoveAsync(OverlayedCast);
+                if (deleted > 0)
+                {
+                    //Reset the Id of Cast
+                    OverlayedCast.Id = 0;
+                    DispatcherHelper.CheckBeginInvokeOnUI(() =>
+                    {
+                        var fe = OverlayGrid as FrameworkElement;
+                        var loveFontIcon = fe.FindName("PlaybackLoveButton") as FontIcon;
+                        loveFontIcon.Glyph = "\uEB51";
+                        loveFontIcon.Foreground = new SolidColorBrush(Colors.White);                    
+                    });
+                }
+            }
         }
+
         private async void LoveRelayCommand()
         {
             var _isLoved = await _dbConn.IsAlreadyExist<Cast>(c => c.Title == CurrentCast.Title);
@@ -448,7 +416,7 @@ namespace MonsterCast.ViewModel
                 if (inserted > 0)
                 {
                     //Update the Id of Cast
-                    var castUpdated = await UpdateCastAsync();
+                    var castUpdated = await UpdateCastAsync(CurrentCast);
                     if (castUpdated)
                     {
                         DispatcherHelper.CheckBeginInvokeOnUI(() =>
@@ -489,8 +457,7 @@ namespace MonsterCast.ViewModel
                     PlayFontIcon.Glyph = "\uE769";
                     PlayButtonTitle.Text = "Pause";
                 });
-                //DispatcherHelper.CheckBeginInvokeOnUI(() => PlayFontIcon.Glyph = "\uE768");
-                //_messenger.Send(new GenericMessage<Cast>(CurrentCast), Message.REQUEST_MEDIAPLAYER_RESUME_SONG);
+               
             }
             else
             {
@@ -501,30 +468,18 @@ namespace MonsterCast.ViewModel
                     PlayFontIcon.Glyph = "\uE768";
                     PlayButtonTitle.Text = "Play";
                 });
-                //DispatcherHelper.CheckBeginInvokeOnUI(() => PlayFontIcon.Glyph = "\uE769");
-                //_messenger.Send(new GenericMessage<Cast>(CurrentCast), Message.REQUEST_MEDIAPLAYER_PAUSE_SONG);
+               
             }
 
         }
 
-        private void CastItemClickAction(ItemClickEventArgs e)
-        {
-            
-            var clickedCast = e.ClickedItem as Cast;
-            CastItemClicked = clickedCast;
-            //var pageType = typeof(CastDetailView);
-            //_messenger.Send(new GenericMessage<Type>(pageType), Core.Enumeration.Message.REQUEST_VIEW_NAVIGATION);
-
-            //_messenger.Send<GenericMessage<Cast>, CastDetailViewModel>(new GenericMessage<Cast>(clickedCast));
-        }
         private void CastItemPointerExitedAction(PointerRoutedEventArgs args)
         {
             //args.Handled = true;
-            //if (!args.Pointer.IsInRange && !args.Pointer.IsInContact)
-            //    OverlayGrid.Visibility = Visibility.Collapsed;
+            //OverlayGrid.Visibility = Visibility.Collapsed;           
         }
 
-        private void CastItemPointerEnteredAction(PointerRoutedEventArgs args)
+        private async  void CastItemPointerEnteredAction(PointerRoutedEventArgs args)
         {
             args.Handled = true;
 
@@ -532,105 +487,91 @@ namespace MonsterCast.ViewModel
             var overlayGrid = originalSource.FindName("OverlayGrid");
             if (overlayGrid != null)
             {
+                var overlayCastcontext = originalSource.DataContext as Cast;
+                OverlayedCast = overlayCastcontext;
+
+
                 var grid = overlayGrid as Grid;
 
                 if (OverlayGrid != null)
                 {
                     if (ReferenceEquals(grid, OverlayGrid))
-                    {
                         return;
-                    }
+
                     else
                     {
                         OverlayGrid.Visibility = Visibility.Collapsed;
                         var fe = OverlayGrid as FrameworkElement;
                         var playIcon = fe.FindName("PlaybackPlayButton") as FontIcon;
-                        if(playIcon != null)
+                        if (playIcon != null)
                         {
                             playIcon.Glyph = "\uE768";
-
                         }
                     }
                 }
 
 
                 grid.Visibility = Visibility.Visible;
-
                 var frameworkElement = grid as FrameworkElement;
 
                 var playFontIcon = frameworkElement.FindName("PlaybackPlayButton") as FontIcon;
                 var loveFontIcon = frameworkElement.FindName("PlaybackLoveButton") as FontIcon;
                 var infoFontIcon = frameworkElement.FindName("PlaybackInfoButton") as FontIcon;
 
+                var registeredGrid = _alreadyAttachedBehavior.SingleOrDefault(g => ReferenceEquals(g, grid));
+                if(registeredGrid == null)
+                {
 
-                var triggerForLoveIcon = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "Tapped" };
-                var actionForLoveIcon = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = PlaybackLoveCommand };
+                    var triggerForLoveIcon = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "Tapped" };
+                    var triggerForPlayIcon = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "Tapped" };
 
-                var triggerForPlayIcon = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "Tapped" };
-                var actionForPlayIcon = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = PlaybackPlayCommand };
+                    var actionForLoveIcon = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = PlaybackLoveCommand };
+                    var actionForPlayIcon = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = PlaybackPlayCommand };
 
-                triggerForLoveIcon.Actions.Add(actionForLoveIcon);
-                triggerForLoveIcon.Attach(loveFontIcon);
+                    triggerForLoveIcon.Actions.Add(actionForLoveIcon);
+                    triggerForPlayIcon.Actions.Add(actionForPlayIcon);
 
-                triggerForPlayIcon.Actions.Add(actionForPlayIcon);
-                triggerForPlayIcon.Attach(playFontIcon);
+                    triggerForLoveIcon.Attach(loveFontIcon);
+                    triggerForPlayIcon.Attach(playFontIcon);
 
+                    _alreadyAttachedBehavior.Add(grid);
+                }
+
+                var _isLoved = await _dbConn.IsAlreadyExist<Cast>(c => c.Title == OverlayedCast.Title);
+                if(_isLoved)
+                {
+                    var castUpdated = await UpdateCastAsync(OverlayedCast);
+                    if (castUpdated)
+                    {
+                        loveFontIcon.Glyph = "\uEB52";
+                        loveFontIcon.Foreground = new SolidColorBrush(Colors.Orange);
+                    }                    
+                }
+                else
+                {
+                    loveFontIcon.Glyph = "\uEB51";
+                    loveFontIcon.Foreground = new SolidColorBrush(Colors.White);
+                }
                 OverlayGrid = grid;
             }
 
         }
 
-        private void CastItemTappedAction(TappedRoutedEventArgs e)
-        {
-            //var originalSource = e.OriginalSource as FrameworkElement;
-            //var templateLayout = originalSource.FindName("ContainerRoot");
-            //if(templateLayout != null)
-            //{
-            //    var grid = templateLayout as Grid;
-            //    var frameworkElement = ((Flyout)grid.ContextFlyout).Content as FrameworkElement;
-
-            //    var playFontIcon = frameworkElement.FindName("PlaybackPlayButton") as FontIcon;
-            //    var loveFontIcon = frameworkElement.FindName("PlaybackLoveButton") as FontIcon;
-            //    var infoFontIcon = frameworkElement.FindName("PlaybackInfoButton") as FontIcon;
-
-
-            //    var triggerForLoveIcon = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "Tapped" };
-            //    var actionForLoveIcon = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = PlaybackLoveCommand };
-
-            //    var triggerForPlayIcon = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "Tapped" };
-            //    var actionForPlayIcon = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = PlaybackPlayCommand };
-
-            //    triggerForLoveIcon.Actions.Add(actionForLoveIcon);
-            //    triggerForLoveIcon.Attach(loveFontIcon);
-
-            //    triggerForPlayIcon.Actions.Add(actionForPlayIcon);
-            //    triggerForPlayIcon.Attach(playFontIcon);
-
-            //    grid.ContextFlyout.ShowAt(originalSource);
-                
-            //}
-        }
-
-        private void ScrollerBarValueChangedAction(RangeBaseValueChangedEventArgs args)
+        private async void ScrollerBarValueChangedAction(RangeBaseValueChangedEventArgs args)
         {
             if (ContentRoot.ItemsSource != null)
             {
                 //Todo : send message to change the content overlay of navigationView
 
                  double result = args.NewValue - ScrollerView.ScrollableHeight;
-                if (/*ScrollerView.VerticalOffset*/ result >= -200.0)
+                if (result >= -200.0)
                 {
-                    //var element = ContentRoot.Children
-                    //.Where(item => item.Visibility == Visibility.Collapsed)
-                    //.FirstOrDefault();
-
-                    //if (element != null)
-                    //    element.Visibility = Visibility.Visible;
+                 
 
                     if(_showedCollectionIndex < (_splitedCollectionLength - 1))
                     {
                         ++_showedCollectionIndex;
-                        Task.Run(() =>
+                        await Task.Run(() =>
                         {
                             DispatcherHelper.CheckBeginInvokeOnUI(() =>
                             {    
@@ -642,10 +583,7 @@ namespace MonsterCast.ViewModel
                             });
                         });
                     }
-                    else
-                    {
-                        _showedCollectionIndex = 0;
-                    }
+                  
                 }
 
             }
@@ -654,57 +592,14 @@ namespace MonsterCast.ViewModel
 
 
 
-        private UIElement CreateGridChild<T>(T datas, bool withBackground = true, Visibility visibly = Visibility.Visible)
-        {
-            Grid _grid = new Grid
-            {
-                MinHeight = 740,
-                VerticalAlignment = VerticalAlignment.Stretch,
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                Visibility = visibly
-            };
-
-            GridView _gridView = new GridView
-            {
-                Foreground = new SolidColorBrush(Colors.Transparent),
-                IsItemClickEnabled = true,
-                SelectionMode = ListViewSelectionMode.None,
-            };
-
-            var trigger = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "ItemClick" };
-            var action = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = CastItemClickCommand };
-            trigger.Actions.Add(action);
-            trigger.Attach(_gridView);
-
-            _gridView.ItemsPanel = Application.Current.Resources["GridViewItemsPanelTemplate"] as ItemsPanelTemplate;
-
-            if (withBackground)
-            {
-                _gridView.ItemTemplate = Application.Current.Resources["GridViewItemTemplate"] as DataTemplate;
-                _gridView.Background = new ImageBrush()
-                {
-                    ImageSource = new BitmapImage(new Uri("ms-appx:///Assets/Backgrounds/boxbg.jpg", UriKind.RelativeOrAbsolute))
-                };
-            }
-            else
-            {
-                _gridView.ItemTemplate = Application.Current.Resources["GridViewItemTemplateBlack"] as DataTemplate;
-                _gridView.Background = new SolidColorBrush(Colors.White);
-            }
-
-            _gridView.ItemsSource = datas;
-
-            _grid.Children.Add(_gridView);
-            return _grid;
-        }
-        private async Task<bool> UpdateCastAsync()
+        private async Task<bool> UpdateCastAsync(Cast castItem)
         {
             var _updated = await Task.Run(async () =>
             {
                 try
                 {
-                    var _saved = await _dbConn.Database.GetAsync<Cast>(c => c.Title == CurrentCast.Title);
-                    CurrentCast.Id = _saved.Id;
+                    var _saved = await _dbConn.Database.GetAsync<Cast>(c => c.Title == castItem.Title);
+                    castItem.Id = _saved.Id;
                     return true;
                 }
                 catch (Exception)
@@ -715,6 +610,50 @@ namespace MonsterCast.ViewModel
             });
             return _updated;
         }
+
+        //private UIElement CreateGridChild<T>(T datas, bool withBackground = true, Visibility visibly = Visibility.Visible)
+        //{
+        //    Grid _grid = new Grid
+        //    {
+        //        MinHeight = 740,
+        //        VerticalAlignment = VerticalAlignment.Stretch,
+        //        HorizontalAlignment = HorizontalAlignment.Stretch,
+        //        Visibility = visibly
+        //    };
+
+        //    GridView _gridView = new GridView
+        //    {
+        //        Foreground = new SolidColorBrush(Colors.Transparent),
+        //        IsItemClickEnabled = true,
+        //        SelectionMode = ListViewSelectionMode.None,
+        //    };
+
+        //    var trigger = new Microsoft.Xaml.Interactions.Core.EventTriggerBehavior() { EventName = "ItemClick" };
+        //    var action = new Microsoft.Xaml.Interactions.Core.InvokeCommandAction() { Command = CastItemClickCommand };
+        //    trigger.Actions.Add(action);
+        //    trigger.Attach(_gridView);
+
+        //    _gridView.ItemsPanel = Application.Current.Resources["GridViewItemsPanelTemplate"] as ItemsPanelTemplate;
+
+        //    if (withBackground)
+        //    {
+        //        _gridView.ItemTemplate = Application.Current.Resources["GridViewItemTemplate"] as DataTemplate;
+        //        _gridView.Background = new ImageBrush()
+        //        {
+        //            ImageSource = new BitmapImage(new Uri("ms-appx:///Assets/Backgrounds/boxbg.jpg", UriKind.RelativeOrAbsolute))
+        //        };
+        //    }
+        //    else
+        //    {
+        //        _gridView.ItemTemplate = Application.Current.Resources["GridViewItemTemplateBlack"] as DataTemplate;
+        //        _gridView.Background = new SolidColorBrush(Colors.White);
+        //    }
+
+        //    _gridView.ItemsSource = datas;
+
+        //    _grid.Children.Add(_gridView);
+        //    return _grid;
+        //}
 
     }
 }

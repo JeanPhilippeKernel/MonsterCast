@@ -27,79 +27,72 @@
                     </TransitionCollection>
                 </Grid.ChildrenTransitions>
                 <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" MinHeight="200">
-                <Grid.Background>
-                    <ImageBrush AlignmentX="Center" AlignmentY="Center"
-                                Stretch="UniformToFill" 
-                                ImageSource="{Binding CurrentCast.Address}"/>
-                </Grid.Background>
-                <Interactivity:Interaction.Behaviors>
-                    <Behaviors:Blur AutomaticallyStart="True" Value="10" Duration="250"/>
-                </Interactivity:Interaction.Behaviors>
-
-            </Grid>
-                <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                  MaxHeight="200">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid x:Name="Cover" Grid.Column="0" HorizontalAlignment="Left" 
-                        VerticalAlignment="Stretch" Width="200" >
                     <Grid.Background>
                         <ImageBrush AlignmentX="Center" AlignmentY="Center"
+                                Stretch="UniformToFill" 
+                                ImageSource="{Binding CurrentCast.Address}"/>
+                    </Grid.Background>
+                    <Interactivity:Interaction.Behaviors>
+                        <Behaviors:Blur AutomaticallyStart="True" Value="10" Duration="250"/>
+                    </Interactivity:Interaction.Behaviors>
+
+                </Grid>
+                <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                  MaxHeight="200">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid x:Name="Cover" Grid.Column="0" HorizontalAlignment="Left" 
+                        VerticalAlignment="Stretch" Width="200" >
+                        <Grid.Background>
+                            <ImageBrush AlignmentX="Center" AlignmentY="Center"
                             Stretch="UniformToFill" 
                             ImageSource="{Binding CurrentCast.Address}"/>
-                    </Grid.Background>
-                </Grid>
-                <Grid Grid.Column="1"  Margin="20,20,0,0" MaxHeight="200">
-                    <StackPanel Orientation="Vertical">
-                        <TextBlock Text="{Binding CurrentCast.Title}" Foreground="White"
+                        </Grid.Background>
+                    </Grid>
+                    <Grid Grid.Column="1"  Margin="20,20,0,0" MaxHeight="200">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="{Binding CurrentCast.Title}" Foreground="White"
                             FontSize="35px" FontWeight="Bold" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding CurrentCast.Subtitle}"
+                            <TextBlock Text="{Binding CurrentCast.Subtitle}"
                             Foreground="White" FontSize="20px" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"/>
-                    </StackPanel>
-                    <StackPanel VerticalAlignment="Bottom" Orientation="Horizontal">
-                        <Button Style="{StaticResource CastButtonStyle}" Foreground="White" 
+                        </StackPanel>
+                        <StackPanel VerticalAlignment="Bottom" Orientation="Horizontal">
+                            <Button Style="{StaticResource CastButtonStyle}" Foreground="White" 
                                 Background="Transparent"          
                                 Margin="20" Width="120" Height="35"
                                 Command="{Binding PlayCommand}">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                                <FontIcon x:Name="PlayButton" Width="20" FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" Margin="0,0,10,0" FontWeight="Bold"/>
-                                <TextBlock x:Name="PlayButtonTitle" Text="Play" FontWeight="Bold" VerticalAlignment="Center" Width="50"/>
-                            </StackPanel>
-                        </Button>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                    <FontIcon x:Name="PlayButton" Width="20" FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" Margin="0,0,10,0" FontWeight="Bold"/>
+                                    <TextBlock x:Name="PlayButtonTitle" Text="Play" FontWeight="Bold" VerticalAlignment="Center" Width="50"/>
+                                </StackPanel>
+                            </Button>
 
-                        <Button Foreground="White"
+                            <Button Foreground="White"
                                 Background="Transparent"                            
                                 Width="120" Height="35"
                                 Style="{StaticResource CastButtonStyle}"
                                 Command="{Binding LoveCommand}">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                                <FontIcon x:Name="LoveButton" Width="25" FontFamily="Segoe MDL2 Assets" Glyph="&#xEB51;" Margin="0,0,10,0" FontWeight="Bold"/>
-                                <TextBlock x:Name="LoveButtonTitle" Text="Loves it" FontWeight="Bold" VerticalAlignment="Center" Width="65"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                    <FontIcon x:Name="LoveButton" Width="25" FontFamily="Segoe MDL2 Assets" Glyph="&#xEB51;" Margin="0,0,10,0" FontWeight="Bold"/>
+                                    <TextBlock x:Name="LoveButtonTitle" Text="Loves it" FontWeight="Bold" VerticalAlignment="Center" Width="65"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
                 </Grid>
             </Grid>
-            </Grid>
 
-            
+
             <GridView x:Name="ContentRoot" ItemTemplate="{StaticResource GridViewItemTemplateBlack}"
-                      IsItemClickEnabled="True" SelectionMode="None"
+                      IsItemClickEnabled="false" SelectionMode="None"
                       ItemsSource="{Binding ShowedCollection}"
                       Margin="20" Grid.Row="1" VerticalAlignment="top" HorizontalAlignment="Center">
-                <!--<GridView.Transitions>
-                    <TransitionCollection>
-                        <EntranceThemeTransition IsStaggeringEnabled="True"/>
-                    </TransitionCollection>
-                </GridView.Transitions>-->
+
                 <Interactivity:Interaction.Behaviors>
-                    <Core:EventTriggerBehavior EventName="ItemClick">
+                    <!--<Core:EventTriggerBehavior EventName="ItemClick">
                         <Core:InvokeCommandAction Command="{Binding CastItemClickCommand}"/>
-                    </Core:EventTriggerBehavior>
-                    <!--<Core:EventTriggerBehavior EventName="Tapped">
-                        <Core:InvokeCommandAction Command="{Binding CastItemTappedCommand}"/>
                     </Core:EventTriggerBehavior>-->
 
                     <Core:EventTriggerBehavior EventName="PointerMoved">
@@ -112,64 +105,7 @@
 
                 </Interactivity:Interaction.Behaviors>
             </GridView>
-            
-            <!--<StackPanel x:Name="ContentRoot" Grid.Row="1" VerticalAlignment="top"
-                    HorizontalAlignment="stretch" Orientation="vertical">
-                --><!--generated content here--><!--
-            </StackPanel>-->
-            <ProgressRing Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" IsActive="{Binding IsLoading}" Foreground="White" Height="50" Width="50"/>
-            <!--<Interactivity:Interaction.Behaviors>
-                <Core:EventTriggerBehavior EventName="ViewChanged">
-                    <Core:InvokeCommandAction Command="{Binding ScrollerViewChangedCommand}"/>
-                </Core:EventTriggerBehavior>
-            </Interactivity:Interaction.Behaviors>-->
-        </Grid>
 
-        
-        <!--<StackPanel VerticalAlignment="Top"  
-              HorizontalAlignment="Stretch">
-            <FlipView HorizontalAlignment="Stretch" 
-                      ItemTemplate="{StaticResource FlipViewItemTemplate}">
-                <ListBoxItem/>
-                <ListBoxItem/>
-                <ListBoxItem/>
-                <ListBoxItem/>
-            </FlipView>
-            <Grid MinHeight="740">
-                <GridView ItemTemplate="{StaticResource GridViewItemTemplate}"
-                          SelectionMode="None" ItemsPanel="{StaticResource GridViewItemsPanelTemplate}"
-                          IsItemClickEnabled="True"
-                          Foreground="Transparent"
-                          ItemsSource="{Binding PodcastCollection}">
-                    <GridView.Background>
-                        <ImageBrush ImageSource="http://tana.themeton.com/music/wp-content/uploads/sites/4/2016/09/box-bg.jpg?id=17"/>
-                    </GridView.Background>
-                    <ListBoxItem />
-                    <ListBoxItem />
-                    <ListBoxItem />
-                    <ListBoxItem />
-                    <ListBoxItem />
-                    <ListBoxItem />
-                    <ListBoxItem />
-                    <ListBoxItem />
-                </GridView>
-            </Grid>
-            <Grid MinHeight="740">
-                <GridView ItemTemplate="{StaticResource GridViewItemTemplate}" Background="White"
-                          SelectionMode="None" ItemsPanel="{StaticResource GridViewItemsPanelTemplate}"
-                          IsItemClickEnabled="True" Foreground="Transparent" 
-                          ItemsSource="{Binding PodcastCollection}">
-                    
-                    <ListBoxItem />
-                    <ListBoxItem />
-                    <ListBoxItem />
-                    <ListBoxItem />
-                    <ListBoxItem />
-                    <ListBoxItem />
-                    <ListBoxItem />
-                    <ListBoxItem />
-                </GridView>
-            </Grid>
-        </StackPanel>-->
+        </Grid>
     </ScrollViewer>
 </Page>

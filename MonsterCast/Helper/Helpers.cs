@@ -36,6 +36,12 @@ namespace MonsterCast.Helper
             using (var _httpClient = new HttpClient())
             {
                 var fileExtension = Path.GetExtension(url);
+
+                if (fileExtension != ".jpg")
+                {
+                    fileExtension = ".jpg";
+                    url = Path.ChangeExtension(url, ".jpg");
+                }
                 //generate filename by cast's song url
                 var generatedFileName = string.Concat(Path.GetFileNameWithoutExtension(castIdentifier), fileExtension);
                 var exist = await CheckFileExistAsync(generatedFileName);
@@ -56,6 +62,7 @@ namespace MonsterCast.Helper
                     catch (Exception ex)
                     {
                         Debug.WriteLine($"[*] Helper : Error while creating file on app local folder - Infos : {ex.Message}");
+                        
                     }
                 }
                 else
@@ -67,14 +74,29 @@ namespace MonsterCast.Helper
             return _imagePath;
         }
 
-        public static void FetchImageParallel(ref IEnumerable<Cast> collection)
+        public static void FetchThumbnailAsync(ref IEnumerable<Cast> collection)
         {
-            var result  =  Parallel.ForEach(collection, async (item) =>
+            var taskCollection = new List<Task>();
+
+            foreach (var item in collection)
             {
-                var path = await FetchImageAsync(item.Address, item.Song);
-                if (!string.IsNullOrEmpty(path))
-                    item.Address = path;
-            });
+                var action = new Action(async () =>
+                {
+                    var path = await FetchImageAsync(item.Address, item.Song);
+                    if (!string.IsNullOrEmpty(path))
+                        item.Address = path;
+                });
+                var task = Task.Run(action);
+
+                taskCollection.Add(task);
+            }
+             Task.WaitAll(taskCollection.ToArray());
+            //var result  =  Parallel.ForEach(collection, async (item) =>
+            //{
+            //    var path = await FetchImageAsync(item.Address, item.Song);
+            //    if (!string.IsNullOrEmpty(path))
+            //        item.Address = path;
+            //});
             
         }
     }                                                                   
