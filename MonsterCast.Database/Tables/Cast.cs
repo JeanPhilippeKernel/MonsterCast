@@ -1,16 +1,7 @@
-﻿using System;
-using GalaSoft.MvvmLight.Threading;
-using SQLite;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Net.Http;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using Windows.Storage.Streams;
+﻿using SQLite;
 using Windows.UI.Xaml.Media.Imaging;
 
-namespace MonsterCast.Model
+namespace MonsterCast.Database.Tables
 {
     public class Cast
     {      

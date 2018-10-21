@@ -3,11 +3,8 @@ using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
 using GalaSoft.MvvmLight.Views;
-using MonsterCast.Helper;
-using MonsterCast.Model;
 using MonsterCast.View;
 using MonsterCast.ViewModel;
-using SQLite;
 using System;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
@@ -15,9 +12,9 @@ using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
-
-using MonsterCast.Core.Database;
-using MonsterCast.Manager;
+using MonsterCast.Database;
+using MonsterCast.Database.Tables;
+using MonsterCast.Core.Manager;
 
 namespace MonsterCast
 {
@@ -78,7 +75,7 @@ namespace MonsterCast
             }
 #endif
 
-            var dbConn = SimpleIoc.Default.GetInstance<Core.Database.IMonsterDatabase>();
+            var dbConn = SimpleIoc.Default.GetInstance<IMonsterDatabase>();
             int con = await dbConn.ConnectAsync();
             if(con == 0)
             {
@@ -154,14 +151,14 @@ namespace MonsterCast
         {
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: enregistrez l'état de l'application et arrêtez toute activité en arrière-plan 
-            var dbConn = SimpleIoc.Default.GetInstance<Core.Database.IMonsterDatabase>();
+            var dbConn = SimpleIoc.Default.GetInstance<IMonsterDatabase>();
             await dbConn.CloseAsync();
             deferral.Complete();
         }
 
         private async void OnResuming(object sender, object e)
         {
-            var dbConn = SimpleIoc.Default.GetInstance<Core.Database.IMonsterDatabase>();
+            var dbConn = SimpleIoc.Default.GetInstance<IMonsterDatabase>();
             await dbConn.ConnectAsync();
         }
     }

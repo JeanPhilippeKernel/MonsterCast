@@ -3,22 +3,19 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
-using MonsterCast.Model;
 using MonsterCast.View;
 using System.Collections.Generic;
-using Windows.Media.Core;
 using Windows.Media.Playback;
 
 using Windows.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls;
 
 using System.Diagnostics;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
 using System.Linq;
 using MonsterCast.Core.Enumeration;
-using MonsterCast.Manager;
 using Windows.UI.Xaml.Controls.Primitives;
+using MonsterCast.Database.Tables;
 
 namespace MonsterCast.ViewModel
 {

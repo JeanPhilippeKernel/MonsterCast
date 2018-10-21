@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonsterCast.Core.Database
+namespace MonsterCast.Database
 {
     public interface IMonsterDatabase
     {

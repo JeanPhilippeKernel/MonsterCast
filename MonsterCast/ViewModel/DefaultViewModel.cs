@@ -3,7 +3,8 @@ using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
 using MonsterCast.Core.Enumeration;
-using MonsterCast.Helper;
+using MonsterCast.Database;
+using MonsterCast.Database.Tables;
 using MonsterCast.Model;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,6 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
-using MonsterCast.Core.Database;
 
 namespace MonsterCast.ViewModel
 {
@@ -45,7 +45,7 @@ namespace MonsterCast.ViewModel
         private Cast _currentCast = null;
         private Cast _overlayedCast = null;
         private IMessenger _messenger = null;
-        private Core.Database.IMonsterDatabase _dbConn = null;
+        private IMonsterDatabase _dbConn = null;
 
         private ScrollViewer _scrollerView = null;
         private GridView _contentRoot = null;
@@ -335,7 +335,7 @@ namespace MonsterCast.ViewModel
                 for (int i = 0; i < _splitedCollectionLength; i++)
                 {
                     IEnumerable<Cast> _collection = SplitedCollection.ElementAt(i);
-                     Helpers.FetchThumbnailAsync(ref _collection);
+                     Core.Helpers.Storage.FetchThumbnailAsync(ref _collection);
                 }
                
             }         

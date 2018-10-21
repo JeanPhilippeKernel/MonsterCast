@@ -1,18 +1,11 @@
-﻿using GalaSoft.MvvmLight.Messaging;
-using MonsterCast.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 using MonsterCast.Core.Enumeration;
-using GalaSoft.MvvmLight;
-using MonsterCast.ViewModel;
-using System.Diagnostics;
+using GalaSoft.MvvmLight.Messaging;
+using MonsterCast.Database.Tables;
 
-namespace MonsterCast.Manager
+namespace MonsterCast.Core.Manager
 {
     public class MediaPlayerManager
     {
@@ -21,16 +14,16 @@ namespace MonsterCast.Manager
         private readonly MediaPlaybackList _mediaPlaybackList = null;
         private IMessenger _messenger = null;
         private Cast _currentPlayingCast = null;
-
+                      
         private bool _isLoopingEnabled = false;
 
         public MediaPlayerManager(IMessenger messenger)
         {
             _messenger = messenger;
             _mediaPlayer = new MediaPlayer();
+            _mediaPlaybackList = new MediaPlaybackList();
             _mediaPlayer.CommandManager.IsEnabled = true;
-            
-            
+
             _messenger.Register<GenericMessage<Cast>>(this, Message.REQUEST_MEDIAPLAYER_PLAY_SONG, PlayRequestAction);                                             
             _messenger.Register<NotificationMessage>(this, Message.REQUEST_MEDIAPLAYER_PAUSE_SONG, NotificationRequestAction);
             _messenger.Register<NotificationMessage>(this, Message.REQUEST_MEDIAPLAYER_RESUME_SONG, NotificationRequestAction);

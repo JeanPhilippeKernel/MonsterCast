@@ -1,7 +1,5 @@
-﻿using CommonServiceLocator;
-using GalaSoft.MvvmLight;
+﻿using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Ioc;
-using GalaSoft.MvvmLight.Messaging;
 
 namespace MonsterCast.ViewModel
 {
