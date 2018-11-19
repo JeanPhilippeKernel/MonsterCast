@@ -10,6 +10,7 @@ using System.Diagnostics;
 using Windows.UI.Xaml;
 using MonsterCast.Core.Enumeration;
 using GalaSoft.MvvmLight.Threading;
+using MonsterCast.Database.Tables;
 
 namespace MonsterCast.ViewModel
 {

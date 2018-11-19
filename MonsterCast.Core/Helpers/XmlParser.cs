@@ -16,7 +16,7 @@ namespace MonsterCast.Core.Helpers
             
         public static Task<List<dynamic>> Parse(Stream _stream)
         {
-            return Task.Factory.StartNew(()=> 
+            return Task.Run(()=> 
             {
                 
                 XElement rootElement = XElement.Load(_stream);

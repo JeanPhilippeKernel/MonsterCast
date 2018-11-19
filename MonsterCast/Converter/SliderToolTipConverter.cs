@@ -13,7 +13,7 @@ namespace MonsterCast.Converter
         {
             double positionValue = (double)value;
             var timeSpan = TimeSpan.FromSeconds(positionValue);
-            return timeSpan.ToString(@"hh\:mm\:ss");
+            return timeSpan.ToString(@"hh\:mm\:ss");       
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

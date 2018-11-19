@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MonsterCast.Core.Database
+namespace MonsterCast.Database
 {
     public class DatabaseUpdateEventArgs : EventArgs
     {

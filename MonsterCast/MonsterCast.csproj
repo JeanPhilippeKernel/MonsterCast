@@ -168,11 +168,8 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Manager\MediaPlayerManager.cs" />
     <Compile Include="Converter\SliderToolTipConverter.cs" />
     <Compile Include="Model\AppConstants.cs" />
-    <Compile Include="Helper\Helpers.cs" />
-    <Compile Include="Model\Cast.cs" />
     <Compile Include="Model\MenuItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModel\AboutViewModel.cs" />
@@ -292,9 +289,6 @@
     <PackageReference Include="Microsoft.UI.Xaml">
       <Version>2.0.180724003-prerelease</Version>
     </PackageReference>
-    <PackageReference Include="MvvmLightLibs">
-      <Version>5.4.1</Version>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <SDKReference Include="Microsoft.VCLibs, Version=14.0">
@@ -305,6 +299,10 @@
     <ProjectReference Include="..\MonsterCast.Core\MonsterCast.Core.csproj">
       <Project>{f9f3f2e5-49a3-4de2-aa70-71b5a3e8c6f7}</Project>
       <Name>MonsterCast.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MonsterCast.Database\MonsterCast.Database.csproj">
+      <Project>{5e611ec2-34a2-41c6-a96d-9c9ab2b84e61}</Project>
+      <Name>MonsterCast.Database</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

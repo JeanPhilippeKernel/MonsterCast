@@ -106,13 +106,11 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Database\DatabaseUpdateEventArgs.cs" />
-    <Compile Include="Database\IMonsterDatabase.cs" />
-    <Compile Include="Database\MonsterDatabase.cs" />
-    <Compile Include="Database\SQLiteAsync.cs" />
     <Compile Include="Enumeration\Message.cs" />
     <Compile Include="Helpers\Collection.cs" />
+    <Compile Include="Helpers\Storage.cs" />
     <Compile Include="Helpers\XmlParser.cs" />
+    <Compile Include="Manager\MediaPlayerManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\MonsterCast.Core.rd.xml" />
   </ItemGroup>
@@ -120,13 +118,25 @@
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.1.5</Version>
     </PackageReference>
-    <PackageReference Include="sqlite-net-pcl">
-      <Version>1.4.118</Version>
+    <PackageReference Include="MvvmLightLibs">
+      <Version>5.4.1.1</Version>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\MonsterCast.Database\MonsterCast.Database.csproj">
+      <Project>{5e611ec2-34a2-41c6-a96d-9c9ab2b84e61}</Project>
+      <Name>MonsterCast.Database</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
+  </PropertyGroup>
+  <PropertyGroup />
+  <PropertyGroup>
+    <StartupObject />
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

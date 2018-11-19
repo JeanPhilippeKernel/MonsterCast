@@ -1,14 +1,11 @@
 ﻿using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
-using MonsterCast.Core.Database;
-using MonsterCast.Helper;
-using MonsterCast.Model;
+using MonsterCast.Database;
+using MonsterCast.Database.Tables;
 using MonsterCast.View;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using Windows.UI.Xaml.Controls;
 
 namespace MonsterCast.ViewModel

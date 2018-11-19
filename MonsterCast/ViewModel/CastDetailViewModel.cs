@@ -2,6 +2,8 @@
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
+using MonsterCast.Database;
+using MonsterCast.Database.Tables;
 using MonsterCast.Model;
 using System;
 using System.Threading.Tasks;
@@ -15,7 +17,7 @@ namespace MonsterCast.ViewModel
     {
         #region Fields
         private IMessenger _messenger = null;
-        private Core.Database.IMonsterDatabase _dbConn = null;
+        private IMonsterDatabase _dbConn = null;
         private Cast _activeCast = null;
         private bool _isFavorite = false;
 
@@ -68,7 +70,7 @@ namespace MonsterCast.ViewModel
         public RelayCommand PlayCommand => _playCommand;
         public RelayCommand LoveCommand => _loveCommand;
         #endregion
-        public CastDetailViewModel(IMessenger messenger, Core.Database.IMonsterDatabase dbConnexion) 
+        public CastDetailViewModel(IMessenger messenger, IMonsterDatabase dbConnexion) 
         {
             _messenger = messenger;
             _dbConn = dbConnexion;

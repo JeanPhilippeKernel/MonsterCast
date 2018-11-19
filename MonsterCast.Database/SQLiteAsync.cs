@@ -21,6 +21,7 @@
 //
 
 
+
 using SQLite;
 using System;
 using System.Collections;
@@ -32,7 +33,7 @@ using System.Threading.Tasks;
 
 #pragma warning disable 1591 // XML Doc Comments
 
-namespace MonsterCast.Core.Database
+namespace MonsterCast.Database
 {
 	public partial class SQLiteAsyncConnection
 	{

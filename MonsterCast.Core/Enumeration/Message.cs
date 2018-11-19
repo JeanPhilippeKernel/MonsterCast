@@ -25,6 +25,14 @@ namespace MonsterCast.Core.Enumeration
         public const string REQUEST_MEDIAPLAYER_PREVIOUS_SONG = "request:mediaplayer:previous_song";
         public const string REQUEST_MEDIAPLAYER_UPDATE_VOLUME = "request:mediaplayer:update:volume";
 
+        public const string REQUEST_MEDIAPLAYER_ENABLE_LOOPING = "request:mediaplayer:enable:looping";
+        public const string REQUEST_MEDIAPLAYER_DISABLE_LOOPING = "request:mediaplayer:disable:looping";
+
+        public const string REQUEST_MEDIAPLAYER_GET_ACCESS_TO_PLAYBACK_TIMELINE = "request:mediaplayer:get:access:playback:timeline";
+        public const string REQUEST_MEDIAPLAYER_RELEASE_ACCESS_TO_PLAYBACK_TIMELINE = "request:mediaplayer:release:access:playback:timeline";
+        public const string REQUEST_MEDIAPLAYER_UPDATE_PLAYBACK_TIMELINE_POSITION = "request:mediaplayer:update:playback:timeline:position";
+        
+
 
         public const string FAVORITE_ADDED = "favorite:added";
         public const string FAVORITE_REMOVED = "favorite:removed";

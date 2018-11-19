@@ -2,6 +2,7 @@
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
 using GalaSoft.MvvmLight.Views;
+using MonsterCast.Database.Tables;
 using MonsterCast.Model;
 using System;
 using System.Collections.Generic;

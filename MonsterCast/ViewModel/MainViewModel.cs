@@ -3,21 +3,19 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
-using MonsterCast.Model;
 using MonsterCast.View;
 using System.Collections.Generic;
-using Windows.Media.Core;
 using Windows.Media.Playback;
 
 using Windows.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls;
 
 using System.Diagnostics;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
 using System.Linq;
 using MonsterCast.Core.Enumeration;
-using MonsterCast.Manager;
+using Windows.UI.Xaml.Controls.Primitives;
+using MonsterCast.Database.Tables;
 
 namespace MonsterCast.ViewModel
 {
@@ -26,8 +24,11 @@ namespace MonsterCast.ViewModel
         #region Fields
         private readonly RelayCommand<Microsoft.UI.Xaml.Controls.NavigationViewItemInvokedEventArgs> _invokedMenuItemCommand = null;
         private readonly RelayCommand<ItemClickEventArgs> _optionalMenuItemCommand = null;
-        private readonly RelayCommand<ManipulationCompletedRoutedEventArgs> _thumbManipulationCompletedCommand = null;
-        private readonly RelayCommand<ManipulationStartedRoutedEventArgs> _thumbManipulationStartedCommand = null;
+
+        private readonly RelayCommand<DragStartedEventArgs> _thumbDragStartedCommand = null;
+        private readonly RelayCommand<DragDeltaEventArgs> _thumbDragDeltaCommand = null;
+        private readonly RelayCommand<DragCompletedEventArgs> _thumbDragCompleteCommand = null;
+
         private readonly RelayCommand<Microsoft.UI.Xaml.Controls.NavigationViewBackRequestedEventArgs> _backButtonCommand = null;
         private readonly RelayCommand<NavigationEventArgs> _hostedFrameNavigatedCommand = null;
         private readonly RelayCommand<TappedRoutedEventArgs> _soundFontIconTappedCommand = null;
@@ -56,6 +57,8 @@ namespace MonsterCast.ViewModel
         private Button _navigationViewBackButton = null;
         private bool _isBackButtonEnable = false;
 
+        private Slider _playbackTimelineSlider = null;
+
         private FontIcon _soundFontIcon = null;
         private FontIcon _playFontIcon = null;
         private FontIcon _loopFontIcon = null;
@@ -71,11 +74,13 @@ namespace MonsterCast.ViewModel
 
         public RelayCommand<Microsoft.UI.Xaml.Controls.NavigationViewItemInvokedEventArgs> InvokedMenuItemCommand => _invokedMenuItemCommand;       
         public RelayCommand<ItemClickEventArgs> OptionalMenuItemCommand => _optionalMenuItemCommand;
-        public RelayCommand<ManipulationCompletedRoutedEventArgs> ThumbManipulationCompletedCommand => _thumbManipulationCompletedCommand;
-        public RelayCommand<ManipulationStartedRoutedEventArgs> ThumbManipulationStartedCommand => _thumbManipulationStartedCommand;
+
+        public  RelayCommand<DragStartedEventArgs> ThumbDragStartedCommand => _thumbDragStartedCommand;
+        public  RelayCommand<DragDeltaEventArgs> ThumbDragDeltaCommand => _thumbDragDeltaCommand;
+        public  RelayCommand<DragCompletedEventArgs> ThumbDragCompleteCommand => _thumbDragCompleteCommand;
+
         public RelayCommand<Microsoft.UI.Xaml.Controls.NavigationViewBackRequestedEventArgs> BackButtonCommand => _backButtonCommand;
         public RelayCommand<NavigationEventArgs> HostedFrameNavigatedCommand => _hostedFrameNavigatedCommand;
-
 
         public RelayCommand<TappedRoutedEventArgs> SoundFontIconTappedCommand => _soundFontIconTappedCommand;
         public RelayCommand<TappedRoutedEventArgs> PlayFontIconTappedCommand => _playFontIconTappedCommand;
@@ -123,8 +128,7 @@ namespace MonsterCast.ViewModel
             {
                 double newValue = (value / 100.0);
                 Set(() => Volume, ref _volume, newValue);
-                //AppConstants.Player.Volume = _volume;
-
+                
                 _messenger.Send(new GenericMessage<double>(_volume), Message.REQUEST_MEDIAPLAYER_UPDATE_VOLUME);
             }
         }
@@ -206,6 +210,14 @@ namespace MonsterCast.ViewModel
             set { Set(() => IsBackButtonEnable, ref _isBackButtonEnable, value); }
         }
 
+        public Slider PlaybackTimelineSlider
+        {
+            get { return _playbackTimelineSlider; }
+            set { Set(() => PlaybackTimelineSlider, ref _playbackTimelineSlider, value); }
+        }
+
+        
+
         public delegate void NotificationCallback(bool value);
         public NotificationCallback _notificationMessageCallback { get; set; }
         #endregion
@@ -238,8 +250,13 @@ namespace MonsterCast.ViewModel
             
             _invokedMenuItemCommand = new RelayCommand<Microsoft.UI.Xaml.Controls.NavigationViewItemInvokedEventArgs>(InvokedMenuItemRelayCommand);
             _optionalMenuItemCommand = new RelayCommand<ItemClickEventArgs>(OptionalRelayCommandHandler);
-            _thumbManipulationCompletedCommand = new RelayCommand<ManipulationCompletedRoutedEventArgs>(ThumbManipulationCompletedRelayCommand);
-            _thumbManipulationStartedCommand = new RelayCommand<ManipulationStartedRoutedEventArgs>(ThumbManipulationStartedRelayCommand);
+
+          
+
+            _thumbDragStartedCommand = new RelayCommand<DragStartedEventArgs>(ThumbDragStartedRelayCommand);
+            _thumbDragDeltaCommand = new RelayCommand<DragDeltaEventArgs>(ThumbDragDeltaRelayCommand);
+            _thumbDragCompleteCommand = new RelayCommand<DragCompletedEventArgs>(ThumbDragCompleteRelayCommand);
+
             _backButtonCommand = new RelayCommand<Microsoft.UI.Xaml.Controls.NavigationViewBackRequestedEventArgs>(BackButtonRelayCommand);
             _hostedFrameNavigatedCommand = new RelayCommand<NavigationEventArgs>(HostedFrameNavigatedRelayCommand);
 
@@ -250,19 +267,6 @@ namespace MonsterCast.ViewModel
 
             _playbackBadgeLoveFontIconTappedCommand = new RelayCommand(PlaybackBadgeLoveRelayCommandAsync);
             _playbackBadgeInfoFontIconTappedCommand = new RelayCommand(PlaybackBadgeInfoRelayCommandAsync);
-
-            
-
-             
-            //AppConstants.Player.BufferingStarted += Player_BufferingStartedAsync;
-            //AppConstants.Player.BufferingEnded += Player_BufferingEndedAsync;
-            //AppConstants.Player.MediaOpened += Player_MediaOpenedAsync;
-            //AppConstants.Player.MediaEnded += Player_MediaEndedAsync;
-            //AppConstants.Player.MediaFailed += Player_MediaFailed;
-            //AppConstants.Player.SourceChanged += Player_SourceChangedAsync;
-            //AppConstants.Player.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChangedAsync;
-            //AppConstants.Player.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChangedAsync_2;
-            //AppConstants.Player.Volume = _volume;           
         }
 
         
@@ -414,23 +418,29 @@ namespace MonsterCast.ViewModel
             DispatcherHelper.CheckBeginInvokeOnUI(() => ActiveMedia = args.Content);
         }
 
-        private void PlayRequestAction(GenericMessage<Cast> args)
-        {
-            ActiveMedia = args.Content;
+        //private void PlayRequestAction(GenericMessage<Cast> args)
+        //{
+        //    ActiveMedia = args.Content;
             
-            AppConstants.Player.Source = MediaSource.CreateFromUri(new Uri(args.Content.Song, UriKind.Absolute));
-            AppConstants.Player.Play();
-        }
+        //    AppConstants.Player.Source = MediaSource.CreateFromUri(new Uri(args.Content.Song, UriKind.Absolute));
+        //    AppConstants.Player.Play();
+        //}
 
-        private void PauseRequestAction(GenericMessage<Cast> args)
-        {
-            if (AppConstants.Player.PlaybackSession.CanPause)
-                AppConstants.Player.Pause();
-        }
+        //private void PauseRequestAction(GenericMessage<Cast> args)
+        //{
+        //    if (AppConstants.Player.PlaybackSession.CanPause)
+        //        AppConstants.Player.Pause();
+        //}
 
         private void NavigationViewRequestAction(GenericMessage<Type> arg)
         {
-            HostedFrame.Navigate(arg.Content);          
+            HostedFrame.ForwardStack.Clear();
+            HostedFrame.BackStack.Clear();
+
+            HostedFrame.Navigate(arg.Content);
+
+            HostedFrame.ForwardStack.Clear();
+            HostedFrame.BackStack.Clear();
         }
 
         private void SetNavigationViewContentOverlay(NotificationMessage<Cast> args)
@@ -557,33 +567,29 @@ namespace MonsterCast.ViewModel
             await DispatcherHelper.RunAsync(() => PlaybackBadge.ContextFlyout.ShowAt(placementElement));
         }
 
-        private async void LoopFontIconTappedRelayCommandAsync(TappedRoutedEventArgs argss)
+        private void LoopFontIconTappedRelayCommandAsync(TappedRoutedEventArgs args)
         {
-            AppConstants.Player.IsLoopingEnabled = AppConstants.Player.IsLoopingEnabled == true ? false : true;
-            
-            if (AppConstants.Player.IsLoopingEnabled)
-                await DispatcherHelper.RunAsync(() => LoopFontIcon.Foreground = new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.Orange));
-            else
-                await DispatcherHelper.RunAsync(() => LoopFontIcon.Foreground = new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.White));           
+            var loopFontIconBrush = LoopFontIcon.Foreground as Windows.UI.Xaml.Media.SolidColorBrush;
+            if(loopFontIconBrush.Color == Windows.UI.Colors.White)
+            {
+                _messenger.Send(new NotificationMessage(Message.REQUEST_MEDIAPLAYER_ENABLE_LOOPING), Message.REQUEST_MEDIAPLAYER_ENABLE_LOOPING);
+                LoopFontIcon.Foreground = new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.Orange);
+            }
+            else if(loopFontIconBrush.Color == Windows.UI.Colors.Orange)
+            {
+                _messenger.Send(new NotificationMessage(Message.REQUEST_MEDIAPLAYER_DISABLE_LOOPING), Message.REQUEST_MEDIAPLAYER_DISABLE_LOOPING);
+                LoopFontIcon.Foreground = new Windows.UI.Xaml.Media.SolidColorBrush(Windows.UI.Colors.White);
+            }
+
+                 
         }
 
 
         private void PlayFontIconTappedRelayCommand(TappedRoutedEventArgs args)
         {
             if (ActiveMedia != null)
-                _messenger.Send(new NotificationMessageWithCallback(Message.IS_MEDIAPLAYER_PLAYBACK_STATE_PLAYING, _notificationMessageCallback), Message.IS_MEDIAPLAYER_PLAYBACK_STATE_PLAYING);
-
-
-            //if (AppConstants.Player.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
-            //{
-            //    AppConstants.Player.Play();
-            //    await DispatcherHelper.RunAsync(() => PlayFontIcon.Glyph = "\uE769");
-            //}
-            //else if (AppConstants.Player.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
-            //{
-            //    AppConstants.Player.Pause();
-            //    await DispatcherHelper.RunAsync(() => PlayFontIcon.Glyph = "\uE768");               
-            //}
+                _messenger.Send(new NotificationMessageWithCallback(Message.IS_MEDIAPLAYER_PLAYBACK_STATE_PLAYING, _notificationMessageCallback), 
+                    Message.IS_MEDIAPLAYER_PLAYBACK_STATE_PLAYING);
         }
 
         public void MediaPlayerPlaybackCallback(bool result)
@@ -615,25 +621,25 @@ namespace MonsterCast.ViewModel
             }
         }
                                                                  
-        private void ThumbManipulationStartedRelayCommand(ManipulationStartedRoutedEventArgs args)
+      
+        private void ThumbDragStartedRelayCommand(DragStartedEventArgs args)
         {
-            Debug.WriteLine("Manipulation started");
-            args.Handled = true;
-            if (AppConstants.Player.PlaybackSession.PlaybackState == MediaPlaybackState.Paused
-                || AppConstants.Player.PlaybackSession.PlaybackState == MediaPlaybackState.Playing)
-            {
-                AppConstants.Player.PlaybackSession.PositionChanged -= PlaybackSession_PositionChangedAsync;
-            }
+            _messenger.Send(new NotificationMessage(Message.REQUEST_MEDIAPLAYER_GET_ACCESS_TO_PLAYBACK_TIMELINE), 
+                Message.REQUEST_MEDIAPLAYER_GET_ACCESS_TO_PLAYBACK_TIMELINE);
+
+        }
+        private void ThumbDragDeltaRelayCommand(DragDeltaEventArgs args)
+        {
+            _messenger.Send(new GenericMessage<double>(PlaybackTimelineSlider.Value),
+                Message.REQUEST_MEDIAPLAYER_UPDATE_PLAYBACK_TIMELINE_POSITION);
         }
 
-        private void ThumbManipulationCompletedRelayCommand(ManipulationCompletedRoutedEventArgs args)
-        {
-            Debug.WriteLine("Manipulation completed");
-            args.Handled = true;
-            var source = args.OriginalSource as Slider;
-            AppConstants.Player.PlaybackSession.Position = TimeSpan.FromSeconds(source.Value);          
-            AppConstants.Player.PlaybackSession.PositionChanged += PlaybackSession_PositionChangedAsync;
+        private void ThumbDragCompleteRelayCommand(DragCompletedEventArgs args)
+        {                                           
+            _messenger.Send(new NotificationMessage(Message.REQUEST_MEDIAPLAYER_RELEASE_ACCESS_TO_PLAYBACK_TIMELINE), 
+                Message.REQUEST_MEDIAPLAYER_RELEASE_ACCESS_TO_PLAYBACK_TIMELINE);
         }
+
         private void BackButtonRelayCommand(Microsoft.UI.Xaml.Controls.NavigationViewBackRequestedEventArgs args)
         {
             if (HostedFrame.CanGoBack)
@@ -652,11 +658,7 @@ namespace MonsterCast.ViewModel
 
             _currentNavigationViewItem = navigationViewItem;
 
-
-            //var navItem = obj.SelectedItem as UIElementCollection;
-            //var d = Windows.UI.Xaml.Media.VisualTreeHelper.GetChild(navItem, 0);
-            //var d = f.FindName("SelectionIndicator");
-
+  
         }
 
         private void OptionalRelayCommandHandler(ItemClickEventArgs args)
